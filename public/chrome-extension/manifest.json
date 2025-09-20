@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "LeadFinder - Business Lead Generator",
+  "version": "1.0.0",
+  "description": "Find business leads instantly with AI-powered search and export to CSV",
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": ["http://localhost:3000/*", "https://*.vercel.app/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "LeadFinder"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
