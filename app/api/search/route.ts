@@ -1,5 +1,5 @@
-import { createClient } from "@/lib/supabase/server"
 import { GooglePlacesService } from "@/lib/google-places"
+import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
@@ -16,13 +16,13 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { query, location } = await request.json()
+    const { query, location, maxResults = 20 } = await request.json()
 
     if (!query || !location) {
       return NextResponse.json({ error: "Query and location are required" }, { status: 400 })
     }
 
-    // Check user quota
+    // Check user quota and get subscription tier
     const { data: userProfile, error: profileError } = await supabase
       .from("users")
       .select("monthly_quota, used_quota, subscription_tier")
@@ -31,6 +31,23 @@ export async function POST(request: NextRequest) {
 
     if (profileError) {
       return NextResponse.json({ error: "Failed to fetch user profile" }, { status: 500 })
+    }
+
+    const tierLimits = {
+      free: 20,
+      pro: 50,
+      enterprise: 100,
+    }
+
+    const maxAllowedResults = tierLimits[userProfile.subscription_tier as keyof typeof tierLimits] || 20
+
+    if (maxResults < 1 || maxResults > maxAllowedResults) {
+      return NextResponse.json(
+        {
+          error: `maxResults must be between 1 and ${maxAllowedResults} for ${userProfile.subscription_tier} tier`,
+        },
+        { status: 400 },
+      )
     }
 
     if (userProfile.used_quota >= userProfile.monthly_quota) {
@@ -50,6 +67,7 @@ export async function POST(request: NextRequest) {
       query,
       location,
       radius: 10000, // 10km radius
+      maxResults,
     })
 
     // Create search record

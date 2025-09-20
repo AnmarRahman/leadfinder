@@ -1,11 +1,11 @@
 "use client"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { loadStripe } from "@stripe/stripe-js"
 import { Check } from "lucide-react"
 import { useState } from "react"
-import { loadStripe } from "@stripe/stripe-js"
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -13,25 +13,35 @@ const plans = [
   {
     name: "Free",
     price: 0,
-    searches: 100,
-    features: ["100 searches per month", "Basic lead data", "CSV export"],
+    searches: 10, // Reduced from 50 to 10 searches
+    maxResults: 20,
+    features: ["10 searches per month", "Up to 20 results per search", "Basic lead data", "CSV export"], // Updated feature text
     popular: false,
     planType: "free",
   },
   {
     name: "Pro",
-    price: 29,
+    price: 120,
     searches: 1000,
-    features: ["1,000 searches per month", "Enhanced lead data", "CSV export", "Priority support"],
+    maxResults: 50,
+    features: [
+      "1,000 searches per month",
+      "Up to 50 results per search",
+      "Enhanced lead data",
+      "CSV export",
+      "Priority support",
+    ],
     popular: true,
     planType: "pro",
   },
   {
     name: "Enterprise",
-    price: 99,
+    price: 1350,
     searches: 5000,
+    maxResults: 100,
     features: [
       "5,000 searches per month",
+      "Up to 100 results per search",
       "Premium lead data",
       "CSV export",
       "Priority support",
@@ -99,6 +109,7 @@ export default function PricingPage() {
             <CardContent>
               <div className="text-center mb-6">
                 <p className="text-lg font-semibold">{plan.searches.toLocaleString()} searches/month</p>
+                <p className="text-lg font-semibold">Up to {plan.maxResults} results per search</p>
               </div>
 
               <ul className="space-y-3 mb-8">

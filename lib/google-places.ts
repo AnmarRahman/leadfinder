@@ -3,6 +3,7 @@ export interface GooglePlacesSearchParams {
   location: string
   radius?: number
   type?: string
+  maxResults?: number
 }
 
 export interface GooglePlaceDetails {
@@ -34,9 +35,119 @@ export class GooglePlacesService {
   }
 
   async searchPlaces(params: GooglePlacesSearchParams): Promise<GooglePlaceDetails[]> {
-    const { query, location, radius = 5000, type } = params
+    const { query, location, radius = 5000, type, maxResults = 20 } = params
 
-    // First, get coordinates for the location
+    if (maxResults <= 60) {
+      return this.searchWithPagination(params)
+    } else {
+      return this.searchWithMultipleQueries(params)
+    }
+  }
+
+  private async searchWithPagination(params: GooglePlacesSearchParams): Promise<GooglePlaceDetails[]> {
+    const { query, location, radius = 5000, maxResults = 20 } = params
+
+    // Get coordinates for the location
+    const coordinates = await this.getCoordinates(location)
+    const { lat, lng } = coordinates
+
+    const allResults: any[] = []
+    let nextPageToken: string | undefined
+
+    // Fetch up to 3 pages (60 results max)
+    for (let page = 0; page < 3 && allResults.length < maxResults; page++) {
+      const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
+        query,
+      )}&location=${lat},${lng}&radius=${radius}&key=${this.apiKey}${
+        nextPageToken ? `&pagetoken=${nextPageToken}` : ""
+      }`
+
+      const searchResponse = await fetch(searchUrl)
+      const searchData = await searchResponse.json()
+
+      if (searchData.status !== "OK") {
+        break
+      }
+
+      allResults.push(...searchData.results)
+      nextPageToken = searchData.next_page_token
+
+      if (!nextPageToken) break
+
+      // Wait 2 seconds before next page (Google requirement)
+      if (page < 2) {
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+      }
+    }
+
+    // Get detailed information for each place
+    const detailedPlaces = await Promise.all(
+      allResults.slice(0, maxResults).map(async (place: any) => {
+        return await this.getPlaceDetails(place.place_id)
+      }),
+    )
+
+    return detailedPlaces.filter((place): place is GooglePlaceDetails => place !== null)
+  }
+
+  private async searchWithMultipleQueries(params: GooglePlacesSearchParams): Promise<GooglePlaceDetails[]> {
+    const { query, location, radius = 5000, maxResults = 100 } = params
+
+    const coordinates = await this.getCoordinates(location)
+    const { lat, lng } = coordinates
+
+    // Create multiple search variations to get more results
+    const searchVariations = [
+      query, // Original query
+      `${query} near ${location}`, // Location-specific
+      `best ${query} in ${location}`, // Quality-focused
+      `top ${query} ${location}`, // Popular places
+      `${query} services ${location}`, // Service-focused
+    ]
+
+    const allResults: any[] = []
+    const seenPlaceIds = new Set<string>()
+
+    // Search with each variation
+    for (const searchQuery of searchVariations) {
+      if (allResults.length >= maxResults) break
+
+      try {
+        const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
+          searchQuery,
+        )}&location=${lat},${lng}&radius=${radius}&key=${this.apiKey}`
+
+        const searchResponse = await fetch(searchUrl)
+        const searchData = await searchResponse.json()
+
+        if (searchData.status === "OK") {
+          // Add unique results only
+          for (const place of searchData.results) {
+            if (!seenPlaceIds.has(place.place_id) && allResults.length < maxResults) {
+              seenPlaceIds.add(place.place_id)
+              allResults.push(place)
+            }
+          }
+        }
+
+        // Small delay between requests
+        await new Promise((resolve) => setTimeout(resolve, 500))
+      } catch (error) {
+        console.error(`Error with search variation "${searchQuery}":`, error)
+      }
+    }
+
+    // Get detailed information for each place
+    const detailedPlaces = await Promise.all(
+      allResults.slice(0, maxResults).map(async (place: any) => {
+        return await this.getPlaceDetails(place.place_id)
+      }),
+    )
+
+    return detailedPlaces.filter((place): place is GooglePlaceDetails => place !== null)
+  }
+
+  private async getCoordinates(location: string): Promise<{ lat: number; lng: number }> {
     const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
       location,
     )}&key=${this.apiKey}`
@@ -48,28 +159,7 @@ export class GooglePlacesService {
       throw new Error("Invalid location provided")
     }
 
-    const { lat, lng } = geocodeData.results[0].geometry.location
-
-    // Search for places using Text Search API
-    const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
-      query,
-    )}&location=${lat},${lng}&radius=${radius}&key=${this.apiKey}`
-
-    const searchResponse = await fetch(searchUrl)
-    const searchData = await searchResponse.json()
-
-    if (searchData.status !== "OK") {
-      throw new Error(`Google Places API error: ${searchData.status}`)
-    }
-
-    // Get detailed information for each place
-    const detailedPlaces = await Promise.all(
-      searchData.results.slice(0, 20).map(async (place: any) => {
-        return await this.getPlaceDetails(place.place_id)
-      }),
-    )
-
-    return detailedPlaces.filter(Boolean)
+    return geocodeData.results[0].geometry.location
   }
 
   async getPlaceDetails(placeId: string): Promise<GooglePlaceDetails | null> {

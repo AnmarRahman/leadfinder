@@ -1,5 +1,5 @@
-import { createClient } from "@/lib/supabase/server"
 import { stripe, SUBSCRIPTION_PLANS } from "@/lib/stripe"
+import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
             .from("users")
             .update({
               subscription_tier: "free",
-              monthly_quota: 100,
+              monthly_quota: 10, // Updated from 100 to 10 searches for free tier
               stripe_subscription_id: null,
             })
             .eq("id", user.id)

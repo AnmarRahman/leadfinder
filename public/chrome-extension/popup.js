@@ -3,6 +3,7 @@ class LeadFinderExtension {
     this.apiBase = "https://leadfinder-symantriq.vercel.app";
     this.token = null;
     this.user = null;
+    this.userProfile = null; // Added to store user profile with subscription tier
     this.chrome = window.chrome; // Declare the chrome variable
     this.init();
   }
@@ -164,6 +165,7 @@ class LeadFinderExtension {
     ]);
     this.token = null;
     this.user = null;
+    this.userProfile = null; // Clear user profile on logout
     this.showAuthSection();
   }
 
@@ -176,6 +178,7 @@ class LeadFinderExtension {
       if (response.ok) {
         const data = await response.json();
         this.user = data.user;
+        await this.fetchUserProfile(); // Fetch user profile to get subscription tier
         this.showAppSection();
       } else {
         this.handleLogout();
@@ -185,12 +188,62 @@ class LeadFinderExtension {
     }
   }
 
+  async fetchUserProfile() {
+    try {
+      const response = await fetch(`${this.apiBase}/api/user/profile`, {
+        headers: { Authorization: `Bearer ${this.token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        this.userProfile = data.profile;
+        this.updateMaxResultsLimit();
+      }
+    } catch (error) {
+      console.error("Failed to fetch user profile:", error);
+    }
+  }
+
+  updateMaxResultsLimit() {
+    const tierLimits = {
+      free: 20,
+      pro: 50,
+      enterprise: 100,
+    };
+
+    const maxAllowed = tierLimits[this.userProfile?.subscription_tier] || 20;
+    const maxResultsInput = document.getElementById("max-results");
+    const label = document.querySelector('label[for="max-results"]');
+
+    maxResultsInput.max = maxAllowed;
+    maxResultsInput.value = Math.min(maxResultsInput.value || 20, maxAllowed);
+    label.textContent = `Number of Results (1-${maxAllowed})`;
+  }
+
   async handleSearch() {
     const query = document.getElementById("search-query").value;
     const location = document.getElementById("search-location").value;
+    const maxResults =
+      Number.parseInt(document.getElementById("max-results").value) || 20;
 
     if (!query || !location) {
       this.showError("Please enter both business type and location");
+      return;
+    }
+
+    const tierLimits = {
+      free: 20,
+      pro: 50,
+      enterprise: 100,
+    };
+    const maxAllowed = tierLimits[this.userProfile?.subscription_tier] || 20;
+
+    if (maxResults < 1 || maxResults > maxAllowed) {
+      this.showError(
+        `Number of results must be between 1 and ${maxAllowed} for your ${
+          this.userProfile?.subscription_tier || "free"
+        } plan`
+      );
       return;
     }
 
@@ -203,7 +256,7 @@ class LeadFinderExtension {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.token}`,
         },
-        body: JSON.stringify({ query, location }),
+        body: JSON.stringify({ query, location, maxResults }),
       });
 
       const data = await response.json();
@@ -323,6 +376,7 @@ class LeadFinderExtension {
     document.getElementById("auth-section").classList.add("hidden");
     document.getElementById("app-section").classList.remove("hidden");
     this.updateQuotaInfo();
+    this.updateMaxResultsLimit(); // Update limits when showing app section
     this.clearMessages();
   }
 
