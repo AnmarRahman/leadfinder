@@ -3,9 +3,10 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { createClient } from "@/lib/supabase/client"
 import { loadStripe } from "@stripe/stripe-js"
 import { Check } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -13,9 +14,9 @@ const plans = [
   {
     name: "Free",
     price: 0,
-    searches: 10, // Reduced from 50 to 10 searches
+    searches: 10,
     maxResults: 20,
-    features: ["10 searches per month", "Up to 20 results per search", "Basic lead data", "CSV export"], // Updated feature text
+    features: ["10 searches per month", "Up to 20 results per search", "Basic lead data", "CSV export"],
     popular: false,
     planType: "free",
   },
@@ -55,9 +56,54 @@ const plans = [
 
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null)
+  const [currentPlan, setCurrentPlan] = useState<string>("free")
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  useEffect(() => {
+    const fetchUserSubscription = async () => {
+      try {
+        const supabase = createClient()
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+
+        if (user) {
+          setIsAuthenticated(true)
+          const { data: profile } = await supabase.from("users").select("subscription_tier").eq("id", user.id).single()
+
+          if (profile) {
+            setCurrentPlan(profile.subscription_tier || "free")
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user subscription:", error)
+      }
+    }
+
+    fetchUserSubscription()
+  }, [])
 
   const handleSubscribe = async (planType: string) => {
-    if (planType === "free") return
+    if (planType === "free" && currentPlan !== "free") {
+      try {
+        const response = await fetch("/api/user/downgrade-to-free", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        })
+
+        if (response.ok) {
+          setCurrentPlan("free")
+          alert("Successfully downgraded to free plan")
+          return
+        }
+      } catch (error) {
+        console.error("Error downgrading:", error)
+        alert("Failed to downgrade. Please try again.")
+        return
+      }
+    }
+
+    if (planType === "free" || planType === currentPlan) return
 
     setLoading(planType)
 
@@ -89,6 +135,11 @@ export default function PricingPage() {
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
         <p className="text-xl text-muted-foreground">Find more leads with our powerful business search tools</p>
+        {isAuthenticated && (
+          <p className="text-sm text-muted-foreground mt-2">
+            Current plan: <span className="font-semibold capitalize">{currentPlan}</span>
+          </p>
+        )}
       </div>
 
       <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
@@ -97,6 +148,11 @@ export default function PricingPage() {
             {plan.popular && (
               <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2" variant="default">
                 Most Popular
+              </Badge>
+            )}
+            {isAuthenticated && plan.planType === currentPlan && (
+              <Badge className="absolute -top-3 right-4" variant="secondary">
+                Current Plan
               </Badge>
             )}
             <CardHeader className="text-center">
@@ -125,13 +181,15 @@ export default function PricingPage() {
                 className="w-full"
                 variant={plan.popular ? "default" : "outline"}
                 onClick={() => handleSubscribe(plan.planType)}
-                disabled={loading === plan.planType || plan.planType === "free"}
+                disabled={loading === plan.planType || (isAuthenticated && plan.planType === currentPlan)}
               >
                 {loading === plan.planType
                   ? "Loading..."
-                  : plan.planType === "free"
+                  : isAuthenticated && plan.planType === currentPlan
                     ? "Current Plan"
-                    : `Subscribe to ${plan.name}`}
+                    : plan.planType === "free"
+                      ? "Downgrade to Free"
+                      : `Subscribe to ${plan.name}`}
               </Button>
             </CardContent>
           </Card>
