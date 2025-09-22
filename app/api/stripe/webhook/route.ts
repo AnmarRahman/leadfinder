@@ -50,6 +50,20 @@ export async function POST(request: NextRequest) {
         })
 
         if (userId && planType) {
+          console.log("[v0] Looking up user in database:", userId)
+          const { data: existingUser, error: lookupError } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", userId)
+            .single()
+
+          if (lookupError) {
+            console.error("[v0] Error looking up user:", lookupError)
+            console.log("[v0] User lookup failed - user may not exist:", userId)
+          } else {
+            console.log("[v0] Found existing user:", existingUser)
+          }
+
           const plan = SUBSCRIPTION_PLANS[planType as keyof typeof SUBSCRIPTION_PLANS]
 
           let subscriptionId = null
@@ -77,12 +91,26 @@ export async function POST(request: NextRequest) {
             updateData.stripe_subscription_id = subscriptionId
           }
 
+          console.log("[v0] Update data being sent:", updateData)
+          console.log("[v0] Updating user with ID:", userId, "Type:", typeof userId)
+
           const { data, error } = await supabase.from("users").update(updateData).eq("id", userId).select()
 
           if (error) {
             console.error("[v0] Failed to update user subscription:", error)
+            console.log("[v0] Error details:", {
+              code: error.code,
+              message: error.message,
+              details: error.details,
+              hint: error.hint,
+            })
           } else {
             console.log("[v0] Successfully updated user subscription:", data)
+            console.log("[v0] Update result length:", data?.length || 0)
+            if (data && data.length === 0) {
+              console.log("[v0] WARNING: Update returned empty array - no rows were updated!")
+              console.log("[v0] This usually means the user ID was not found in the database")
+            }
           }
         } else {
           console.log("[v0] Missing required metadata:", {
