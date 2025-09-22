@@ -25,13 +25,21 @@ export async function updateSession(request: NextRequest) {
     },
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-  if (request.nextUrl.pathname.startsWith("/api/") && request.nextUrl.pathname !== "/api/auth" && !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const publicApiRoutes = ["/api/auth", "/api/user/profile"]
+    const isPublicApiRoute = publicApiRoutes.some((route) => request.nextUrl.pathname.startsWith(route))
+
+    if (request.nextUrl.pathname.startsWith("/api/") && !isPublicApiRoute && !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    return supabaseResponse
+  } catch (error) {
+    console.error("[v0] Middleware error:", error)
+    return supabaseResponse
   }
-
-  return supabaseResponse
 }
