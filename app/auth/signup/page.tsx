@@ -2,11 +2,11 @@
 
 import type React from "react"
 
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { createClient } from "@/lib/supabase/client"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -58,6 +58,11 @@ export default function SignupPage() {
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6">
+          <div className="flex justify-center">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/">← Back to Home</Link>
+            </Button>
+          </div>
           <Card>
             <CardHeader className="text-center">
               <CardTitle className="text-2xl">Create Account</CardTitle>

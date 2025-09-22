@@ -49,6 +49,11 @@ export default function LoginPage() {
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6">
+          <div className="flex justify-center">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/">← Back to Home</Link>
+            </Button>
+          </div>
           <Card>
             <CardHeader className="text-center">
               <CardTitle className="text-2xl">Welcome to LeadFinder</CardTitle>

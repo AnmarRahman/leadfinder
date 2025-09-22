@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { createClient } from "@/lib/supabase/client"
 import { loadStripe } from "@stripe/stripe-js"
 import { Check } from "lucide-react"
+import Link from "next/link"
 import { useEffect, useState } from "react"
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
@@ -132,13 +133,20 @@ export default function PricingPage() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
-        <p className="text-xl text-muted-foreground">Find more leads with our powerful business search tools</p>
+      <div className="flex justify-between items-center mb-8">
+        <div className="text-center flex-1">
+          <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
+          <p className="text-xl text-muted-foreground">Find more leads with our powerful business search tools</p>
+          {isAuthenticated && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Current plan: <span className="font-semibold capitalize">{currentPlan}</span>
+            </p>
+          )}
+        </div>
         {isAuthenticated && (
-          <p className="text-sm text-muted-foreground mt-2">
-            Current plan: <span className="font-semibold capitalize">{currentPlan}</span>
-          </p>
+          <Button asChild variant="outline">
+            <Link href="/dashboard">Back to Dashboard</Link>
+          </Button>
         )}
       </div>
 
