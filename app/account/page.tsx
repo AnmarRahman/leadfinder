@@ -1,9 +1,9 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
+import { redirect } from "next/navigation"
 
 async function handlePortalRedirect() {
   "use server"
@@ -18,6 +18,22 @@ async function handlePortalRedirect() {
   if (response.ok) {
     const { url } = await response.json()
     redirect(url)
+  }
+}
+
+async function syncSubscription() {
+  "use server"
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/user/sync-subscription`,
+    {
+      method: "POST",
+    },
+  )
+
+  if (response.ok) {
+    // Redirect to refresh the page data
+    redirect("/account")
   }
 }
 
@@ -93,6 +109,11 @@ export default async function AccountPage() {
               <Button asChild size="sm">
                 <Link href="/pricing">Change Plan</Link>
               </Button>
+              <form action={syncSubscription}>
+                <Button type="submit" variant="outline" size="sm">
+                  Refresh Status
+                </Button>
+              </form>
               {profile?.stripe_customer_id && (
                 <form action={handlePortalRedirect}>
                   <Button type="submit" variant="outline" size="sm">
