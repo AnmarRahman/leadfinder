@@ -71,6 +71,10 @@ class LeadFinderExtension {
       .addEventListener("keypress", (e) => {
         if (e.key === "Enter") this.handleSearch();
       });
+
+    document
+      .getElementById("upgrade-btn")
+      .addEventListener("click", () => this.handleUpgrade());
   }
 
   async handleLogin() {
@@ -196,6 +200,9 @@ class LeadFinderExtension {
       if (response.ok) {
         const data = await response.json();
         this.user = data.user;
+        await this.chrome.storage.local.set({
+          leadfinder_user: data.user,
+        });
         await this.fetchUserProfile(); // Fetch user profile to get subscription tier
         this.showAppSection();
       } else {
@@ -236,6 +243,36 @@ class LeadFinderExtension {
     maxResultsInput.max = maxAllowed;
     maxResultsInput.value = Math.min(maxResultsInput.value || 20, maxAllowed);
     label.textContent = `Number of Results (1-${maxAllowed})`;
+
+    this.updateSubscriptionDisplay();
+  }
+
+  updateSubscriptionDisplay() {
+    const currentTier = document.getElementById("current-tier");
+    const upgradeBtn = document.getElementById("upgrade-btn");
+
+    const tier = this.userProfile?.subscription_tier || "free";
+    const tierNames = {
+      free: "Free Plan",
+      pro: "Pro Plan",
+      enterprise: "Enterprise Plan",
+    };
+
+    currentTier.textContent = tierNames[tier];
+
+    // Hide upgrade button for enterprise users
+    if (tier === "enterprise") {
+      upgradeBtn.style.display = "none";
+    } else {
+      upgradeBtn.style.display = "block";
+    }
+  }
+
+  async handleUpgrade() {
+    // Open the main app's pricing page in a new tab
+    await this.chrome.tabs.create({
+      url: `${this.apiBase}/pricing?utm_source=extension`,
+    });
   }
 
   async handleSearch() {
@@ -265,7 +302,7 @@ class LeadFinderExtension {
       return;
     }
 
-    this.showLoading(true);
+    this.showSearchProgress(true);
 
     try {
       const response = await fetch(`${this.apiBase}/api/search`, {
@@ -289,7 +326,7 @@ class LeadFinderExtension {
     } catch (error) {
       this.showError(error.message);
     } finally {
-      this.showLoading(false);
+      this.showSearchProgress(false);
     }
   }
 
@@ -419,6 +456,63 @@ class LeadFinderExtension {
     } else {
       loadingEl.classList.add("hidden");
     }
+  }
+
+  showSearchProgress(show) {
+    const progressContainer = document.getElementById("search-progress");
+    const searchBtn = document.getElementById("search-btn");
+
+    if (show) {
+      progressContainer.classList.remove("hidden");
+      searchBtn.disabled = true;
+      searchBtn.textContent = "Searching...";
+      this.animateProgress();
+    } else {
+      progressContainer.classList.add("hidden");
+      searchBtn.disabled = false;
+      searchBtn.textContent = "Find Leads";
+      this.stopProgressAnimation();
+    }
+  }
+
+  animateProgress() {
+    const progressFill = document.getElementById("progress-fill");
+    const progressText = document.getElementById("progress-text");
+
+    let progress = 0;
+    const messages = [
+      "Searching for leads...",
+      "Analyzing business data...",
+      "Gathering contact information...",
+      "Finalizing results...",
+    ];
+
+    this.progressInterval = setInterval(() => {
+      progress += Math.random() * 15 + 5; // Random increment between 5-20%
+      if (progress > 90) progress = 90; // Cap at 90% until complete
+
+      progressFill.style.width = `${progress}%`;
+
+      const messageIndex = Math.floor((progress / 100) * messages.length);
+      if (messages[messageIndex]) {
+        progressText.textContent = messages[messageIndex];
+      }
+    }, 800);
+  }
+
+  stopProgressAnimation() {
+    if (this.progressInterval) {
+      clearInterval(this.progressInterval);
+      this.progressInterval = null;
+    }
+
+    // Complete the progress bar
+    const progressFill = document.getElementById("progress-fill");
+    progressFill.style.width = "100%";
+
+    setTimeout(() => {
+      progressFill.style.width = "0%";
+    }, 500);
   }
 
   clearMessages() {
