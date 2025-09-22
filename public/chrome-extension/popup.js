@@ -91,7 +91,16 @@ class LeadFinderExtension {
         body: JSON.stringify({ email, password, action: "signin" }),
       });
 
-      const data = await response.json();
+      let data;
+      const contentType = response.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        // If response is not JSON, get text and create error object
+        const text = await response.text();
+        data = { error: text || "Server error occurred" };
+      }
 
       if (!response.ok) {
         throw new Error(data.error || "Login failed");
@@ -138,7 +147,16 @@ class LeadFinderExtension {
         body: JSON.stringify({ email, password, action: "signup" }),
       });
 
-      const data = await response.json();
+      let data;
+      const contentType = response.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        // If response is not JSON, get text and create error object
+        const text = await response.text();
+        data = { error: text || "Server error occurred" };
+      }
 
       if (!response.ok) {
         throw new Error(data.error || "Signup failed");
