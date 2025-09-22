@@ -2,41 +2,53 @@ import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
-  const { email, password, action } = await request.json()
-  const supabase = await createClient()
+  try {
+    console.log("[v0] Auth API called")
+    const { email, password, action } = await request.json()
+    console.log("[v0] Action:", action, "Email:", email)
 
-  if (action === "signup") {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo:
-          process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-          `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/dashboard`,
-      },
-    })
+    const supabase = await createClient()
+    console.log("[v0] Supabase client created")
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+    if (action === "signup") {
+      console.log("[v0] Processing signup")
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo:
+            process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
+            `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/dashboard`,
+        },
+      })
+
+      console.log("[v0] Signup result:", { data: !!data, error: error?.message })
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 })
+      }
+
+      return NextResponse.json({ data })
     }
 
-    return NextResponse.json({ data })
-  }
+    if (action === "signin") {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-  if (action === "signin") {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 })
+      }
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+      return NextResponse.json({ data })
     }
 
-    return NextResponse.json({ data })
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 })
+  } catch (error) {
+    console.error("[v0] Auth API error:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-
-  return NextResponse.json({ error: "Invalid action" }, { status: 400 })
 }
 
 export async function GET() {
