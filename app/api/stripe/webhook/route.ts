@@ -37,32 +37,47 @@ export async function POST(request: NextRequest) {
         const userId = session.metadata?.supabase_user_id
         const planType = session.metadata?.plan_type
 
-        console.log("[v0] Checkout session completed:", {
+        console.log("[v0] Checkout session completed - Full session data:", {
+          sessionId: session.id,
           userId,
           planType,
           subscription: session.subscription,
+          customer: session.customer,
           metadata: session.metadata,
+          mode: session.mode,
+          payment_status: session.payment_status,
+          subscription_data: session.subscription ? "exists" : "null",
         })
 
-        if (userId && planType && session.subscription) {
+        if (userId && planType) {
           const plan = SUBSCRIPTION_PLANS[planType as keyof typeof SUBSCRIPTION_PLANS]
+
+          let subscriptionId = null
+          if (session.subscription) {
+            subscriptionId = session.subscription as string
+          } else if (session.mode === "payment") {
+            console.log("[v0] One-time payment detected, no subscription ID")
+          }
 
           console.log("[v0] Updating user subscription:", {
             userId,
             planType,
             searches: plan.searches,
-            subscriptionId: session.subscription,
+            subscriptionId,
+            mode: session.mode,
           })
 
-          const { data, error } = await supabase
-            .from("users")
-            .update({
-              subscription_tier: planType,
-              monthly_quota: plan.searches,
-              stripe_subscription_id: session.subscription as string,
-              used_quota: 0, // Reset quota on new subscription
-            })
-            .eq("id", userId)
+          const updateData: any = {
+            subscription_tier: planType,
+            monthly_quota: plan.searches,
+            used_quota: 0, // Reset quota on new subscription
+          }
+
+          if (subscriptionId) {
+            updateData.stripe_subscription_id = subscriptionId
+          }
+
+          const { data, error } = await supabase.from("users").update(updateData).eq("id", userId).select()
 
           if (error) {
             console.error("[v0] Failed to update user subscription:", error)
@@ -70,7 +85,13 @@ export async function POST(request: NextRequest) {
             console.log("[v0] Successfully updated user subscription:", data)
           }
         } else {
-          console.log("[v0] Missing required metadata:", { userId, planType, subscription: session.subscription })
+          console.log("[v0] Missing required metadata:", {
+            userId,
+            planType,
+            subscription: session.subscription,
+            hasUserId: !!userId,
+            hasPlanType: !!planType,
+          })
         }
         break
       }
@@ -79,16 +100,13 @@ export async function POST(request: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
 
-        // Find user by customer ID
         const { data: user } = await supabase.from("users").select("id").eq("stripe_customer_id", customerId).single()
 
         if (user) {
-          // Determine plan type based on subscription status
           let planType = "free"
           let quota = 100
 
           if (subscription.status === "active") {
-            // Get the price ID to determine plan
             const priceId = subscription.items.data[0]?.price.id
 
             if (priceId === SUBSCRIPTION_PLANS.pro.priceId) {
@@ -127,11 +145,9 @@ export async function POST(request: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
 
-        // Find user by customer ID
         const { data: user } = await supabase.from("users").select("id").eq("stripe_customer_id", customerId).single()
 
         if (user) {
-          // Downgrade to free plan
           console.log("[v0] Downgrading user to free plan:", {
             userId: user.id,
           })
@@ -140,7 +156,7 @@ export async function POST(request: NextRequest) {
             .from("users")
             .update({
               subscription_tier: "free",
-              monthly_quota: 10, // Updated from 100 to 10 searches for free tier
+              monthly_quota: 10,
               stripe_subscription_id: null,
             })
             .eq("id", user.id)
