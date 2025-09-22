@@ -8,10 +8,23 @@ import { redirect } from "next/navigation"
 async function handlePortalRedirect() {
   "use server"
 
+  const supabase = await createClient()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session) {
+    redirect("/auth/login")
+  }
+
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/stripe/create-portal-session`,
     {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+      },
     },
   )
 
@@ -24,10 +37,23 @@ async function handlePortalRedirect() {
 async function syncSubscription() {
   "use server"
 
+  const supabase = await createClient()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session) {
+    redirect("/auth/login")
+  }
+
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/user/sync-subscription`,
     {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+      },
     },
   )
 
