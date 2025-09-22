@@ -1,5 +1,4 @@
 import { stripe, SUBSCRIPTION_PLANS } from "@/lib/stripe"
-import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
@@ -23,10 +22,21 @@ export async function POST(request: NextRequest) {
 
   let supabase
   try {
-    supabase = await createClient()
-    console.log("[v0] Supabase client created successfully")
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error("Missing Supabase service configuration")
+    }
+
+    // Use service role key for webhook operations
+    const { createClient } = await import("@supabase/supabase-js")
+    supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+    console.log("[v0] Supabase service client created successfully")
+    console.log("[v0] Using Supabase URL:", supabaseUrl.substring(0, 30) + "...")
   } catch (error) {
-    console.error("[v0] Failed to create Supabase client:", error)
+    console.error("[v0] Failed to create Supabase service client:", error)
     return NextResponse.json({ error: "Database connection failed" }, { status: 500 })
   }
 
