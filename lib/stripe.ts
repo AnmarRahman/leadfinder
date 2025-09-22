@@ -13,6 +13,7 @@ export const SUBSCRIPTION_PLANS = {
     name: "Free",
     price: 0,
     searches: 10, // Reduced from 50 to 10 searches to further lower costs ($0.32 vs $1.60)
+    priceId: undefined,
     features: ["10 searches per month", "Basic lead data", "CSV export"],
   },
   pro: {

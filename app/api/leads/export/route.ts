@@ -20,8 +20,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from("leads")
       .select(
-        `
-        business_name,
+        `business_name,
         address,
         phone,
         website,
@@ -64,8 +63,8 @@ export async function GET(request: NextRequest) {
       `"${lead.website || ""}"`,
       lead.rating || "",
       lead.total_ratings || "",
-      `"${lead.searches.query.replace(/"/g, '""')}"`,
-      `"${lead.searches.location.replace(/"/g, '""')}"`,
+      `"${lead.searches[0]?.query?.replace(/"/g, '""') || ""}"`,
+      `"${lead.searches[0]?.location?.replace(/"/g, '""') || ""}"`,
       new Date(lead.created_at).toLocaleDateString(),
     ])
 

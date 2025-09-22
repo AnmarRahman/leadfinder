@@ -305,3 +305,149 @@ For support and questions:
 ---
 
 Built with ❤️ using Next.js, Supabase, and modern web technologies.
+
+```
+leadfinder
+├─ API_DOCUMENTATION.md
+├─ app
+│  ├─ account
+│  │  └─ page.tsx
+│  ├─ api
+│  │  ├─ auth
+│  │  │  └─ route.ts
+│  │  ├─ leads
+│  │  │  ├─ export
+│  │  │  │  ├─ advanced
+│  │  │  │  │  └─ route.ts
+│  │  │  │  └─ route.ts
+│  │  │  └─ route.ts
+│  │  ├─ search
+│  │  │  └─ route.ts
+│  │  ├─ stripe
+│  │  │  ├─ create-checkout-session
+│  │  │  │  └─ route.ts
+│  │  │  ├─ create-portal-session
+│  │  │  │  └─ route.ts
+│  │  │  └─ webhook
+│  │  │     └─ route.ts
+│  │  └─ user
+│  │     ├─ profile
+│  │     │  └─ route.ts
+│  │     └─ quota
+│  │        └─ route.ts
+│  ├─ auth
+│  │  ├─ login
+│  │  │  └─ page.tsx
+│  │  ├─ signout
+│  │  │  └─ route.ts
+│  │  ├─ signup
+│  │  │  └─ page.tsx
+│  │  └─ verify-email
+│  │     └─ page.tsx
+│  ├─ dashboard
+│  │  └─ page.tsx
+│  ├─ globals.css
+│  ├─ layout.tsx
+│  ├─ leads
+│  │  └─ page.tsx
+│  └─ pricing
+│     └─ page.tsx
+├─ components
+│  ├─ export-dialog.tsx
+│  ├─ theme-provider.tsx
+│  └─ ui
+│     ├─ accordion.tsx
+│     ├─ alert-dialog.tsx
+│     ├─ alert.tsx
+│     ├─ aspect-ratio.tsx
+│     ├─ avatar.tsx
+│     ├─ badge.tsx
+│     ├─ breadcrumb.tsx
+│     ├─ button.tsx
+│     ├─ calendar.tsx
+│     ├─ card.tsx
+│     ├─ carousel.tsx
+│     ├─ chart.tsx
+│     ├─ checkbox.tsx
+│     ├─ collapsible.tsx
+│     ├─ command.tsx
+│     ├─ context-menu.tsx
+│     ├─ dialog.tsx
+│     ├─ drawer.tsx
+│     ├─ dropdown-menu.tsx
+│     ├─ form.tsx
+│     ├─ hover-card.tsx
+│     ├─ input-otp.tsx
+│     ├─ input.tsx
+│     ├─ label.tsx
+│     ├─ menubar.tsx
+│     ├─ navigation-menu.tsx
+│     ├─ pagination.tsx
+│     ├─ popover.tsx
+│     ├─ progress.tsx
+│     ├─ radio-group.tsx
+│     ├─ resizable.tsx
+│     ├─ scroll-area.tsx
+│     ├─ select.tsx
+│     ├─ separator.tsx
+│     ├─ sheet.tsx
+│     ├─ sidebar.tsx
+│     ├─ skeleton.tsx
+│     ├─ slider.tsx
+│     ├─ sonner.tsx
+│     ├─ switch.tsx
+│     ├─ table.tsx
+│     ├─ tabs.tsx
+│     ├─ textarea.tsx
+│     ├─ toast.tsx
+│     ├─ toaster.tsx
+│     ├─ toggle-group.tsx
+│     ├─ toggle.tsx
+│     ├─ tooltip.tsx
+│     ├─ use-mobile.tsx
+│     └─ use-toast.ts
+├─ components.json
+├─ DEPLOYMENT_GUIDE.md
+├─ hooks
+│  ├─ use-mobile.ts
+│  └─ use-toast.ts
+├─ lib
+│  ├─ csv-export.ts
+│  ├─ google-places.ts
+│  ├─ stripe.ts
+│  ├─ supabase
+│  │  ├─ client.ts
+│  │  ├─ middleware.ts
+│  │  └─ server.ts
+│  └─ utils.ts
+├─ middleware.ts
+├─ next.config.mjs
+├─ package-lock.json
+├─ package.json
+├─ pnpm-lock.yaml
+├─ postcss.config.mjs
+├─ public
+│  ├─ chrome-extension
+│  │  ├─ icons
+│  │  │  ├─ icon128.jpg
+│  │  │  ├─ icon16.jpg
+│  │  │  └─ icon48.jpg
+│  │  ├─ manifest.json
+│  │  ├─ popup.html
+│  │  ├─ popup.js
+│  │  └─ README.md
+│  ├─ placeholder-logo.png
+│  ├─ placeholder-logo.svg
+│  ├─ placeholder-user.jpg
+│  ├─ placeholder.jpg
+│  └─ placeholder.svg
+├─ README.md
+├─ scripts
+│  └─ 001_create_database_schema.sql
+├─ styles
+│  └─ globals.css
+├─ tsconfig.json
+└─ types
+   └─ index.ts
+
+```

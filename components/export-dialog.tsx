@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -12,9 +12,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Download, FileText } from "lucide-react"
+import { useState } from "react"
 
 interface ExportDialogProps {
   searchId?: string
@@ -109,13 +109,21 @@ Top Search: ${summary.topSearchQueries[0]?.query || "N/A"} (${summary.topSearchQ
             <Label className="text-sm font-medium">Include Data</Label>
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <Checkbox id="ratings" checked={includeRatings} onCheckedChange={setIncludeRatings} />
+                <Checkbox
+                  id="ratings"
+                  checked={includeRatings}
+                  onCheckedChange={(checked) => setIncludeRatings(checked === true)}
+                />
                 <Label htmlFor="ratings" className="text-sm">
                   Ratings and reviews
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
-                <Checkbox id="search-info" checked={includeSearchInfo} onCheckedChange={setIncludeSearchInfo} />
+                <Checkbox
+                  id="search-info"
+                  checked={includeSearchInfo}
+                  onCheckedChange={(checked) => setIncludeSearchInfo(checked === true)}
+                />
                 <Label htmlFor="search-info" className="text-sm">
                   Search query and location
                 </Label>
