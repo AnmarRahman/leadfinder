@@ -57,6 +57,14 @@ class LeadFinderExtension {
       .getElementById("export-btn")
       .addEventListener("click", () => this.handleExport());
 
+    // Website filter functionality
+    document
+      .getElementById("website-filter")
+      .addEventListener("change", () => this.handleFilterChange());
+    document
+      .getElementById("filter-upgrade-btn")
+      .addEventListener("click", () => this.handleUpgrade());
+
     // Enter key support
     document.getElementById("password").addEventListener("keypress", (e) => {
       if (e.key === "Enter") this.handleLogin();
@@ -71,10 +79,6 @@ class LeadFinderExtension {
       .addEventListener("keypress", (e) => {
         if (e.key === "Enter") this.handleSearch();
       });
-
-    document
-      .getElementById("upgrade-btn")
-      .addEventListener("click", () => this.handleUpgrade());
   }
 
   async handleLogin() {
@@ -223,6 +227,7 @@ class LeadFinderExtension {
         const data = await response.json();
         this.userProfile = data.profile;
         this.updateMaxResultsLimit();
+        this.updateFilterAccess();
       }
     } catch (error) {
       console.error("Failed to fetch user profile:", error);
@@ -280,6 +285,7 @@ class LeadFinderExtension {
     const location = document.getElementById("search-location").value;
     const maxResults =
       Number.parseInt(document.getElementById("max-results").value) || 20;
+    const websiteFilter = document.getElementById("website-filter").value;
 
     if (!query || !location) {
       this.showError("Please enter both business type and location");
@@ -311,7 +317,7 @@ class LeadFinderExtension {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.token}`,
         },
-        body: JSON.stringify({ query, location, maxResults }),
+        body: JSON.stringify({ query, location, maxResults, websiteFilter }),
       });
 
       const data = await response.json();
@@ -320,7 +326,7 @@ class LeadFinderExtension {
         throw new Error(data.error || "Search failed");
       }
 
-      this.displayResults(data.results);
+      this.displayResults(data.results, websiteFilter);
       this.updateQuotaInfo(data.remainingQuota);
       this.showSuccess(`Found ${data.results.length} leads!`);
     } catch (error) {
@@ -359,18 +365,37 @@ class LeadFinderExtension {
     }
   }
 
-  displayResults(results) {
+  displayResults(results, websiteFilter = "all") {
     const container = document.getElementById("results-container");
     const section = document.getElementById("results-section");
 
     if (results.length === 0) {
       container.innerHTML = "<p>No results found. Try a different search.</p>";
     } else {
-      container.innerHTML = results
-        .map(
-          (result) => `
+      // Add filter information
+      let filterInfo = "";
+      if (websiteFilter === "no-website") {
+        const noWebsiteCount = results.filter((r) => !r.website).length;
+        filterInfo = `<div class="filter-count">Showing ${noWebsiteCount} businesses without websites</div>`;
+      } else if (websiteFilter === "has-website") {
+        const hasWebsiteCount = results.filter((r) => r.website).length;
+        filterInfo = `<div class="filter-count">Showing ${hasWebsiteCount} businesses with websites</div>`;
+      }
+
+      container.innerHTML =
+        filterInfo +
+        results
+          .map(
+            (result) => `
         <div class="result-item">
-          <div class="result-name">${result.name}</div>
+          <div class="result-name">
+            ${result.name}
+            ${
+              !result.website
+                ? '<span class="no-website-badge">No Website</span>'
+                : ""
+            }
+          </div>
           <div class="result-details">
             ${result.formatted_address}<br>
             ${
@@ -393,8 +418,8 @@ class LeadFinderExtension {
           </div>
         </div>
       `
-        )
-        .join("");
+          )
+          .join("");
     }
 
     section.classList.remove("hidden");
@@ -519,6 +544,35 @@ class LeadFinderExtension {
     document.getElementById("error-message").classList.add("hidden");
     document.getElementById("success-message").classList.add("hidden");
     document.getElementById("loading").classList.add("hidden");
+  }
+
+  updateFilterAccess() {
+    const websiteFilter = document.getElementById("website-filter");
+    const proBadge = document.getElementById("filter-pro-badge");
+    const tier = this.userProfile?.subscription_tier || "free";
+
+    const isPro = tier === "pro" || tier === "enterprise";
+
+    if (isPro) {
+      websiteFilter.disabled = false;
+      proBadge.classList.add("hidden");
+    } else {
+      websiteFilter.disabled = true;
+      websiteFilter.value = "all";
+      proBadge.classList.remove("hidden");
+    }
+  }
+
+  handleFilterChange() {
+    const tier = this.userProfile?.subscription_tier || "free";
+    const isPro = tier === "pro" || tier === "enterprise";
+
+    if (!isPro) {
+      document.getElementById("website-filter").value = "all";
+      this.showError(
+        "Website filtering is a Pro feature. Upgrade to access advanced filters."
+      );
+    }
   }
 }
 
