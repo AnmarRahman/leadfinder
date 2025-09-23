@@ -78,7 +78,7 @@ export default async function AccountPage() {
   const { data: profile } = await supabase.from("users").select("*").eq("id", user.id).single()
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container flex justify-center items-center mx-auto p-6">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Account Settings</h1>
