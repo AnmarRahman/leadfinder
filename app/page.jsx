@@ -20,7 +20,7 @@ export default function HomePage() {
 
             <h1 className="text-5xl md:text-7xl font-bold text-balance mb-8 leading-tight">
               Find leads instantly with our{" "}
-              <span className="text-primary bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <span className="text-primary bg-gradient-to-r from-primary to-accent bg-clip-text">
                 Chrome extension
               </span>
             </h1>
