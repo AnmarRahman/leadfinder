@@ -4,430 +4,58 @@
 <head>
   <meta charset="utf-8">
   <style>
-    body {
-      width: 380px;
-      min-height: 500px;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #ffffff;
-    }
-
-    .container {
-      padding: 20px;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 24px;
-      border-bottom: 1px solid #e5e7eb;
-      padding-bottom: 16px;
-    }
-
-    .logo {
-      font-size: 24px;
-      font-weight: bold;
-      color: #1f2937;
-      margin-bottom: 4px;
-    }
-
-    .tagline {
-      font-size: 12px;
-      color: #6b7280;
-    }
-
-    .auth-section {
-      margin-bottom: 20px;
-    }
-
-    .form-group {
-      margin-bottom: 16px;
-    }
-
-    label {
-      display: block;
-      font-size: 14px;
-      font-weight: 500;
-      color: #374151;
-      margin-bottom: 6px;
-    }
-
-    input[type="email"],
-    input[type="password"],
-    input[type="text"],
-    input[type="number"] {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 14px;
-      box-sizing: border-box;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-
-    .btn {
-      width: 100%;
-      padding: 10px 16px;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-sizing: border-box;
-    }
-
-    .btn-primary {
-      background: #3b82f6;
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #2563eb;
-    }
-
-    .btn-secondary {
-      background: #f3f4f6;
-      color: #374151;
-      border: 1px solid #d1d5db;
-    }
-
-    .btn-secondary:hover {
-      background: #e5e7eb;
-    }
-
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .search-section {
-      margin-bottom: 20px;
-    }
-
-    .quota-info {
-      background: #f0f9ff;
-      border: 1px solid #bae6fd;
-      border-radius: 6px;
-      padding: 12px;
-      margin-bottom: 16px;
-      font-size: 12px;
-      color: #0c4a6e;
-    }
-
-    .subscription-info {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      padding: 12px;
-      margin-bottom: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .tier-display {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
-    }
-
-    #current-tier {
-      font-size: 12px;
-      font-weight: 500;
-      color: #475569;
-      flex: 1;
-    }
-
-    .btn-upgrade {
-      background: #10b981;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .btn-upgrade:hover {
-      background: #059669;
-    }
-
-    .progress-container {
-      margin: 16px 0;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 8px;
-      background: #e5e7eb;
-      border-radius: 4px;
-      overflow: hidden;
-      margin-bottom: 8px;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: #3b82f6;
-      border-radius: 4px;
-      transition: width 0.3s ease;
-      width: 0%;
-    }
-
-    .progress-text {
-      font-size: 12px;
-      color: #6b7280;
-      text-align: center;
-    }
-
-    .results-section {
-      margin-top: 20px;
-    }
-
-    .result-item {
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
-      padding: 12px;
-      margin-bottom: 8px;
-      font-size: 12px;
-    }
-
-    .result-name {
-      font-weight: 600;
-      color: #1f2937;
-      margin-bottom: 4px;
-    }
-
-    .result-details {
-      color: #6b7280;
-      line-height: 1.4;
-    }
-
-    .error {
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      color: #dc2626;
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      margin-bottom: 16px;
-    }
-
-    .success {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      color: #166534;
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      margin-bottom: 16px;
-    }
-
-    .loading {
-      text-align: center;
-      padding: 20px;
-      color: #6b7280;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .link-btn {
-      background: none;
-      border: none;
-      color: #3b82f6;
-      text-decoration: underline;
-      cursor: pointer;
-      font-size: 12px;
-      padding: 0;
-      margin-top: 8px;
-    }
-
-    .export-section {
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid #e5e7eb;
-    }
-
-    .filter-select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 14px;
-      box-sizing: border-box;
-      background: white;
-    }
-
-    .filter-select:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-
-    .filter-select:disabled {
-      background: #f9fafb;
-      color: #9ca3af;
-      cursor: not-allowed;
-    }
-
-    .pro-badge {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #fef3c7;
-      border: 1px solid #f59e0b;
-      border-radius: 4px;
-      padding: 6px 8px;
-      margin-top: 4px;
-      font-size: 11px;
-    }
-
-    .pro-text {
-      color: #92400e;
-      font-weight: 500;
-    }
-
-    .mini-upgrade-btn {
-      background: #f59e0b;
-      color: white;
-      border: none;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-size: 10px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .mini-upgrade-btn:hover {
-      background: #d97706;
-    }
-
-    .filter-count {
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      border-radius: 4px;
-      padding: 8px;
-      margin-bottom: 12px;
-      font-size: 12px;
-      color: #1e40af;
-    }
-
-    .no-website-badge {
-      display: inline-block;
-      background: #fed7aa;
-      color: #ea580c;
-      font-size: 10px;
-      font-weight: 500;
-      padding: 2px 6px;
-      border-radius: 3px;
-      margin-left: 8px;
-    }
-
-    /* Tier-specific styling */
-    .tier-badge {
-      background: #f1f5f9;
-      border: 1px solid #cbd5e1;
-      border-radius: 4px;
-      padding: 6px 10px;
-      margin-bottom: 12px;
-      font-size: 11px;
-      font-weight: 500;
-      text-align: center;
-    }
-
-    .tier-badge.tier-free {
-      background: #f8fafc;
-      border-color: #e2e8f0;
-      color: #64748b;
-    }
-
-    .tier-badge.tier-pro {
-      background: #fef3c7;
-      border-color: #f59e0b;
-      color: #92400e;
-    }
-
-    .tier-badge.tier-enterprise {
-      background: #f0fdf4;
-      border-color: #22c55e;
-      color: #166534;
-    }
-
-    /* Tier-specific result styling */
-    .result-item.tier-pro {
-      border-left: 3px solid #f59e0b;
-    }
-
-    .result-item.tier-enterprise {
-      border-left: 3px solid #22c55e;
-    }
-
-    .result-item.tier-free {
-      border-left: 3px solid #94a3b8;
-    }
-
-    /* Disabled feature styling */
-    .disabled-feature {
-      opacity: 0.7;
-    }
-
-    .disabled-feature .filter-select {
-      background: #f9fafb !important;
-      cursor: not-allowed !important;
-    }
-
-    /* Tier-specific form group styling */
-    [data-tier="pro"] input[type="number"] {
-      border-left: 3px solid #f59e0b;
-    }
-
-    [data-tier="enterprise"] input[type="number"] {
-      border-left: 3px solid #22c55e;
-    }
-
-    [data-tier="free"] input[type="number"] {
-      border-left: 3px solid #94a3b8;
-    }
-
-    /* Subscription display enhancements */
-    .subscription-info.tier-pro {
-      background: #fffbeb;
-      border-color: #fbbf24;
-    }
-
-    .subscription-info.tier-enterprise {
-      background: #f0fdf4;
-      border-color: #34d399;
-    }
-
-    .subscription-info.tier-free {
-      background: #f8fafc;
-      border-color: #e2e8f0;
-    }
-
-    /* Quota info tier styling */
-    .quota-info.tier-pro {
-      background: #fffbeb;
-      border-color: #fbbf24;
-      color: #92400e;
-    }
-
-    .quota-info.tier-enterprise {
-      background: #f0fdf4;
-      border-color: #34d399;
-      color: #166534;
-    }
+    body { width: 380px; min-height: 520px; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #ffffff; }
+    .container { padding: 20px; }
+    .header { text-align: center; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 12px; }
+    .logo { font-size: 24px; font-weight: bold; color: #1f2937; margin-bottom: 4px; }
+    .tagline { font-size: 12px; color: #6b7280; }
+    .quick-links { display:flex; gap:8px; justify-content:center; margin-top:8px; }
+    .quick-btn { padding:6px 10px; font-size:11px; border:1px solid #d1d5db; border-radius:6px; background:#f9fafb; cursor:pointer; }
+    .quick-btn:hover { background:#f3f4f6; }
+    .auth-section { margin-bottom: 20px; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+    input[type="email"], input[type="password"], input[type="text"], input[type="number"] { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
+    input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+    .btn { width: 100%; padding: 10px 16px; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-sizing: border-box; }
+    .btn-primary { background: #3b82f6; color: white; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-secondary { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+    .btn-secondary:hover { background: #e5e7eb; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .search-section { margin-bottom: 20px; }
+    .quota-info { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px; margin-bottom: 16px; font-size: 12px; color: #0c4a6e; }
+    .subscription-info { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .tier-display { display: flex; align-items: center; gap: 12px; width: 100%; }
+    #current-tier { font-size: 12px; font-weight: 500; color: #475569; flex: 1; }
+    .btn-upgrade { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+    .btn-upgrade:hover { background: #059669; }
+    .progress-container { margin: 16px 0; }
+    .progress-bar { width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+    .progress-fill { height: 100%; background: #3b82f6; border-radius: 4px; transition: width 0.3s ease; width: 0%; }
+    .progress-text { font-size: 12px; color: #6b7280; text-align: center; }
+    .results-section { margin-top: 20px; }
+    .result-item { border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; margin-bottom: 8px; font-size: 12px; }
+    .result-name { font-weight: 600; color: #1f2937; margin-bottom: 4px; }
+    .result-details { color: #6b7280; line-height: 1.4; }
+    .error { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 10px; border-radius: 6px; font-size: 12px; margin-bottom: 16px; }
+    .success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 10px; border-radius: 6px; font-size: 12px; margin-bottom: 16px; }
+    .loading { text-align: center; padding: 20px; color: #6b7280; }
+    .hidden { display: none; }
+    .link-btn { background: none; border: none; color: #3b82f6; text-decoration: underline; cursor: pointer; font-size: 12px; padding: 0; margin-top: 8px; }
+    .filter-select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box; background: white; }
+    .filter-select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+    .filter-select:disabled { background: #f9fafb; color: #9ca3af; cursor: not-allowed; }
+    .pro-badge { display: flex; align-items: center; justify-content: space-between; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 4px; padding: 6px 8px; margin-top: 4px; font-size: 11px; }
+    .pro-text { color: #92400e; font-weight: 500; }
+    .mini-upgrade-btn { background: #f59e0b; color: white; border: none; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+    .mini-upgrade-btn:hover { background: #d97706; }
+    .filter-count { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 4px; padding: 8px; margin-bottom: 12px; font-size: 12px; color: #1e40af; }
+    .no-website-badge { display: inline-block; background: #fed7aa; color: #ea580c; font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 3px; margin-left: 8px; }
+    .tier-badge { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 10px; margin-bottom: 12px; font-size: 11px; font-weight: 500; text-align: center; }
+    .result-item.tier-pro { border-left: 3px solid #f59e0b; }
+    .result-item.tier-enterprise { border-left: 3px solid #22c55e; }
+    .result-item.tier-free { border-left: 3px solid #94a3b8; }
   </style>
 </head>
 
@@ -436,6 +64,9 @@
     <div class="header">
       <div class="logo">LeadFinder</div>
       <div class="tagline">AI-Powered Business Lead Generation</div>
+      <div class="quick-links">
+        <button id="open-app-btn" class="quick-btn">Open Web App</button>
+      </div>
     </div>
 
     <!-- Authentication Section -->
@@ -471,7 +102,6 @@
     <div id="app-section" class="hidden">
       <div id="quota-info" class="quota-info"></div>
 
-      <!-- Enhanced subscription tier display and upgrade button -->
       <div id="subscription-info" class="subscription-info">
         <div class="tier-display">
           <span id="current-tier">Free Plan</span>
@@ -489,7 +119,6 @@
           <input type="text" id="search-location" placeholder="e.g., New York, NY">
         </div>
 
-        <!-- Enhanced website filter dropdown for pro/enterprise users -->
         <div class="form-group" id="website-filter-group">
           <label for="website-filter">Website Filter</label>
           <select id="website-filter" class="filter-select">
@@ -508,11 +137,8 @@
           <input type="number" id="max-results" min="1" max="20" value="20">
         </div>
 
-        <!-- Enhanced progress bar for search feedback -->
         <div id="search-progress" class="progress-container hidden">
-          <div class="progress-bar">
-            <div id="progress-fill" class="progress-fill"></div>
-          </div>
+          <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
           <div id="progress-text" class="progress-text">Searching for leads...</div>
         </div>
 
