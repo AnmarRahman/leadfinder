@@ -333,6 +333,101 @@
       border-radius: 3px;
       margin-left: 8px;
     }
+
+    /* Tier-specific styling */
+    .tier-badge {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      padding: 6px 10px;
+      margin-bottom: 12px;
+      font-size: 11px;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .tier-badge.tier-free {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+      color: #64748b;
+    }
+
+    .tier-badge.tier-pro {
+      background: #fef3c7;
+      border-color: #f59e0b;
+      color: #92400e;
+    }
+
+    .tier-badge.tier-enterprise {
+      background: #f0fdf4;
+      border-color: #22c55e;
+      color: #166534;
+    }
+
+    /* Tier-specific result styling */
+    .result-item.tier-pro {
+      border-left: 3px solid #f59e0b;
+    }
+
+    .result-item.tier-enterprise {
+      border-left: 3px solid #22c55e;
+    }
+
+    .result-item.tier-free {
+      border-left: 3px solid #94a3b8;
+    }
+
+    /* Disabled feature styling */
+    .disabled-feature {
+      opacity: 0.7;
+    }
+
+    .disabled-feature .filter-select {
+      background: #f9fafb !important;
+      cursor: not-allowed !important;
+    }
+
+    /* Tier-specific form group styling */
+    [data-tier="pro"] input[type="number"] {
+      border-left: 3px solid #f59e0b;
+    }
+
+    [data-tier="enterprise"] input[type="number"] {
+      border-left: 3px solid #22c55e;
+    }
+
+    [data-tier="free"] input[type="number"] {
+      border-left: 3px solid #94a3b8;
+    }
+
+    /* Subscription display enhancements */
+    .subscription-info.tier-pro {
+      background: #fffbeb;
+      border-color: #fbbf24;
+    }
+
+    .subscription-info.tier-enterprise {
+      background: #f0fdf4;
+      border-color: #34d399;
+    }
+
+    .subscription-info.tier-free {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+    }
+
+    /* Quota info tier styling */
+    .quota-info.tier-pro {
+      background: #fffbeb;
+      border-color: #fbbf24;
+      color: #92400e;
+    }
+
+    .quota-info.tier-enterprise {
+      background: #f0fdf4;
+      border-color: #34d399;
+      color: #166534;
+    }
   </style>
 </head>
 
@@ -376,7 +471,7 @@
     <div id="app-section" class="hidden">
       <div id="quota-info" class="quota-info"></div>
 
-      <!-- Added subscription tier display and upgrade button -->
+      <!-- Enhanced subscription tier display and upgrade button -->
       <div id="subscription-info" class="subscription-info">
         <div class="tier-display">
           <span id="current-tier">Free Plan</span>
@@ -394,7 +489,7 @@
           <input type="text" id="search-location" placeholder="e.g., New York, NY">
         </div>
 
-        <!-- Added website filter dropdown for pro/enterprise users -->
+        <!-- Enhanced website filter dropdown for pro/enterprise users -->
         <div class="form-group" id="website-filter-group">
           <label for="website-filter">Website Filter</label>
           <select id="website-filter" class="filter-select">
@@ -403,7 +498,7 @@
             <option value="has-website">Has website only</option>
           </select>
           <div id="filter-pro-badge" class="pro-badge hidden">
-            <span class="pro-text">Pro Feature</span>
+            <span class="pro-text">Pro/Enterprise Feature</span>
             <button id="filter-upgrade-btn" class="mini-upgrade-btn">Upgrade</button>
           </div>
         </div>
@@ -413,7 +508,7 @@
           <input type="number" id="max-results" min="1" max="20" value="20">
         </div>
 
-        <!-- Added progress bar for search feedback -->
+        <!-- Enhanced progress bar for search feedback -->
         <div id="search-progress" class="progress-container hidden">
           <div class="progress-bar">
             <div id="progress-fill" class="progress-fill"></div>
