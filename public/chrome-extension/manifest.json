@@ -3,8 +3,13 @@
   "name": "LeadFinder - Business Lead Generator",
   "version": "1.0.0",
   "description": "Find business leads instantly with AI-powered search and export to CSV",
-  "permissions": ["activeTab", "storage"],
-  "host_permissions": ["https://leadfinder-symantriq.vercel.app/*"],
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://leadfinder-2025.vercel.app/*"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_title": "LeadFinder"

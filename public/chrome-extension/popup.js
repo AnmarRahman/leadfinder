@@ -1,11 +1,11 @@
 class LeadFinderExtension {
   constructor() {
-    this.apiBase = "https://leadfinder-symantriq.vercel.app";
+    this.apiBase = "https://leadfinder-2025.vercel.app";
     this.token = null;
     this.user = null;
     this.userProfile = null;
     this.chrome = window.chrome;
-    
+
     // Define subscription tier features
     this.tierFeatures = {
       free: {
@@ -14,7 +14,7 @@ class LeadFinderExtension {
         maxResults: 20,
         hasAdvancedFiltering: false,
         hasAPIAccess: false,
-        supportLevel: "Standard"
+        supportLevel: "Standard",
       },
       pro: {
         name: "Pro Plan",
@@ -22,7 +22,7 @@ class LeadFinderExtension {
         maxResults: 50,
         hasAdvancedFiltering: true,
         hasAPIAccess: false,
-        supportLevel: "Priority"
+        supportLevel: "Priority",
       },
       enterprise: {
         name: "Enterprise Plan",
@@ -30,10 +30,10 @@ class LeadFinderExtension {
         maxResults: 100,
         hasAdvancedFiltering: true,
         hasAPIAccess: true,
-        supportLevel: "Dedicated"
-      }
+        supportLevel: "Dedicated",
+      },
     };
-    
+
     this.init();
   }
 
@@ -271,7 +271,7 @@ class LeadFinderExtension {
   updateUIForSubscriptionTier() {
     const currentTier = this.userProfile?.subscription_tier || "free";
     const tierConfig = this.tierFeatures[currentTier];
-    
+
     this.updateSubscriptionDisplay(tierConfig, currentTier);
     this.updateMaxResultsLimit(tierConfig);
     this.updateFilterAccess(tierConfig);
@@ -289,7 +289,8 @@ class LeadFinderExtension {
       upgradeBtn.style.display = "none";
     } else {
       upgradeBtn.style.display = "block";
-      upgradeBtn.textContent = currentTier === "free" ? "Upgrade to Pro" : "Upgrade to Enterprise";
+      upgradeBtn.textContent =
+        currentTier === "free" ? "Upgrade to Pro" : "Upgrade to Enterprise";
     }
   }
 
@@ -298,12 +299,18 @@ class LeadFinderExtension {
     const label = document.querySelector('label[for="max-results"]');
 
     maxResultsInput.max = tierConfig.maxResults;
-    maxResultsInput.value = Math.min(maxResultsInput.value || tierConfig.maxResults, tierConfig.maxResults);
+    maxResultsInput.value = Math.min(
+      maxResultsInput.value || tierConfig.maxResults,
+      tierConfig.maxResults
+    );
     label.textContent = `Number of Results (1-${tierConfig.maxResults})`;
 
     // Add tier-specific styling
     const container = maxResultsInput.parentElement;
-    container.setAttribute('data-tier', this.userProfile?.subscription_tier || 'free');
+    container.setAttribute(
+      "data-tier",
+      this.userProfile?.subscription_tier || "free"
+    );
   }
 
   updateFilterAccess(tierConfig) {
@@ -314,15 +321,15 @@ class LeadFinderExtension {
     if (tierConfig.hasAdvancedFiltering) {
       websiteFilter.disabled = false;
       proBadge.classList.add("hidden");
-      filterGroup.classList.remove('disabled-feature');
+      filterGroup.classList.remove("disabled-feature");
     } else {
       websiteFilter.disabled = true;
       websiteFilter.value = "all";
       proBadge.classList.remove("hidden");
-      filterGroup.classList.add('disabled-feature');
-      
+      filterGroup.classList.add("disabled-feature");
+
       // Update badge text based on current tier
-      const proText = proBadge.querySelector('.pro-text');
+      const proText = proBadge.querySelector(".pro-text");
       proText.textContent = "Pro/Enterprise Feature";
     }
   }
@@ -330,7 +337,7 @@ class LeadFinderExtension {
   updateExportFeatures(tierConfig) {
     const exportBtn = document.getElementById("export-btn");
     const currentTier = this.userProfile?.subscription_tier || "free";
-    
+
     // All tiers have basic CSV export, but we can add tier-specific text
     if (currentTier === "enterprise") {
       exportBtn.textContent = "Export All Leads to CSV (Enhanced)";
@@ -344,7 +351,7 @@ class LeadFinderExtension {
   async handleUpgrade() {
     const currentTier = this.userProfile?.subscription_tier || "free";
     const targetTier = currentTier === "free" ? "pro" : "enterprise";
-    
+
     // Open the main app's pricing page in a new tab with tier-specific targeting
     await this.chrome.tabs.create({
       url: `${this.apiBase}/pricing?utm_source=extension&current_tier=${currentTier}&target_tier=${targetTier}`,
@@ -354,7 +361,8 @@ class LeadFinderExtension {
   async handleSearch() {
     const query = document.getElementById("search-query").value;
     const location = document.getElementById("search-location").value;
-    const maxResults = Number.parseInt(document.getElementById("max-results").value) || 20;
+    const maxResults =
+      Number.parseInt(document.getElementById("max-results").value) || 20;
     const websiteFilter = document.getElementById("website-filter").value;
     const currentTier = this.userProfile?.subscription_tier || "free";
     const tierConfig = this.tierFeatures[currentTier];
@@ -374,7 +382,9 @@ class LeadFinderExtension {
 
     // Check if user is trying to use advanced filtering without proper tier
     if (websiteFilter !== "all" && !tierConfig.hasAdvancedFiltering) {
-      this.showError("Advanced filtering requires Pro or Enterprise plan. Please upgrade to use this feature.");
+      this.showError(
+        "Advanced filtering requires Pro or Enterprise plan. Please upgrade to use this feature."
+      );
       return;
     }
 
@@ -387,18 +397,20 @@ class LeadFinderExtension {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.token}`,
         },
-        body: JSON.stringify({ 
-          query, 
-          location, 
-          maxResults, 
-          websiteFilter: tierConfig.hasAdvancedFiltering ? websiteFilter : "all"
+        body: JSON.stringify({
+          query,
+          location,
+          maxResults,
+          websiteFilter: tierConfig.hasAdvancedFiltering
+            ? websiteFilter
+            : "all",
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        if (data.error?.includes('quota') || data.error?.includes('limit')) {
+        if (data.error?.includes("quota") || data.error?.includes("limit")) {
           this.showQuotaExceededMessage(currentTier);
         } else {
           throw new Error(data.error || "Search failed");
@@ -408,7 +420,9 @@ class LeadFinderExtension {
 
       this.displayResults(data.results, websiteFilter, currentTier);
       this.updateQuotaInfo(data.remainingQuota, currentTier);
-      this.showSuccess(`Found ${data.results.length} leads using ${tierConfig.name}!`);
+      this.showSuccess(
+        `Found ${data.results.length} leads using ${tierConfig.name}!`
+      );
     } catch (error) {
       this.showError(error.message);
     } finally {
@@ -419,7 +433,7 @@ class LeadFinderExtension {
   showQuotaExceededMessage(currentTier) {
     const tierConfig = this.tierFeatures[currentTier];
     const nextTier = currentTier === "free" ? "Pro" : "Enterprise";
-    
+
     this.showError(
       `You've reached your ${tierConfig.name} limit of ${tierConfig.searches} searches. Upgrade to ${nextTier} for more searches!`
     );
@@ -427,15 +441,15 @@ class LeadFinderExtension {
 
   async handleExport() {
     const currentTier = this.userProfile?.subscription_tier || "free";
-    
+
     this.showLoading(true);
 
     try {
       // Use advanced export for Pro/Enterprise users
-      const endpoint = this.tierFeatures[currentTier].hasAdvancedFiltering 
-        ? '/api/leads/export/advanced' 
-        : '/api/leads/export';
-      
+      const endpoint = this.tierFeatures[currentTier].hasAdvancedFiltering
+        ? "/api/leads/export/advanced"
+        : "/api/leads/export";
+
       const response = await fetch(`${this.apiBase}${endpoint}`, {
         headers: { Authorization: `Bearer ${this.token}` },
       });
@@ -449,13 +463,17 @@ class LeadFinderExtension {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      
+
       const tierSuffix = currentTier !== "free" ? `-${currentTier}` : "";
-      a.download = `leads${tierSuffix}-${new Date().toISOString().split("T")[0]}.csv`;
+      a.download = `leads${tierSuffix}-${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
       a.click();
       window.URL.revokeObjectURL(url);
 
-      const exportType = this.tierFeatures[currentTier].hasAdvancedFiltering ? "Advanced" : "Basic";
+      const exportType = this.tierFeatures[currentTier].hasAdvancedFiltering
+        ? "Advanced"
+        : "Basic";
       this.showSuccess(`${exportType} leads export completed!`);
     } catch (error) {
       this.showError(error.message);
@@ -470,14 +488,18 @@ class LeadFinderExtension {
     const tierConfig = this.tierFeatures[currentTier];
 
     if (results.length === 0) {
-      container.innerHTML = "<p>No results found. Try a different search or upgrade for access to more data sources.</p>";
+      container.innerHTML =
+        "<p>No results found. Try a different search or upgrade for access to more data sources.</p>";
     } else {
       // Add tier-specific filter information
       let filterInfo = "";
       if (websiteFilter === "no-website" && tierConfig.hasAdvancedFiltering) {
         const noWebsiteCount = results.filter((r) => !r.website).length;
         filterInfo = `<div class="filter-count">🔍 Advanced Filter: Showing ${noWebsiteCount} businesses without websites</div>`;
-      } else if (websiteFilter === "has-website" && tierConfig.hasAdvancedFiltering) {
+      } else if (
+        websiteFilter === "has-website" &&
+        tierConfig.hasAdvancedFiltering
+      ) {
         const hasWebsiteCount = results.filter((r) => r.website).length;
         filterInfo = `<div class="filter-count">🔍 Advanced Filter: Showing ${hasWebsiteCount} businesses with websites</div>`;
       }
@@ -549,12 +571,12 @@ class LeadFinderExtension {
     const quotaInfo = document.getElementById("quota-info");
     const tierConfig = this.tierFeatures[currentTier];
     const usedQuota = tierConfig.searches - remainingQuota;
-    
+
     quotaInfo.innerHTML = `
       <div>Searches: ${usedQuota}/${tierConfig.searches} used this month</div>
       <div>Remaining: ${remainingQuota} searches</div>
     `;
-    
+
     // Add warning if quota is low
     if (remainingQuota <= 2 && currentTier === "free") {
       quotaInfo.innerHTML += `<div style="color: #dc2626; font-weight: 500; margin-top: 4px;">⚠️ Almost out of searches! Consider upgrading.</div>`;
@@ -624,14 +646,14 @@ class LeadFinderExtension {
       free: [
         "Searching for leads...",
         "Analyzing business data...",
-        "Finalizing results..."
+        "Finalizing results...",
       ],
       pro: [
         "Searching for leads...",
         "Applying advanced filters...",
         "Analyzing business data...",
         "Gathering enhanced contact info...",
-        "Finalizing results..."
+        "Finalizing results...",
       ],
       enterprise: [
         "Searching for leads...",
@@ -640,8 +662,8 @@ class LeadFinderExtension {
         "Accessing premium data sources...",
         "Gathering enhanced contact info...",
         "Processing additional insights...",
-        "Finalizing results..."
-      ]
+        "Finalizing results...",
+      ],
     };
 
     const tierMessages = messages[currentTier];
