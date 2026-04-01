@@ -1,8 +1,8 @@
-import { createClient } from "@/lib/supabase/server"
+import { createRequestClient } from "@/lib/supabase/request"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient()
+  const supabase = await createRequestClient(request)
 
   // Check authentication
   const {

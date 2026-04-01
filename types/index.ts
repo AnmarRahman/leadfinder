@@ -15,6 +15,8 @@ export interface Search {
   user_id: string
   query: string
   location: string
+  website_filter?: "all" | "has-website" | "no-website"
+  email_enrichment_enabled?: boolean
   results_count: number
   created_at: string
 }
@@ -27,6 +29,7 @@ export interface Lead {
   address?: string
   phone?: string
   website?: string
+  email?: string
   rating?: number
   total_ratings?: number
   place_id?: string

@@ -41,6 +41,9 @@ export function Header() {
         {/* Nav - Centered */}
         <nav className="hidden md:flex items-center space-x-6 absolute left-1/2 transform -translate-x-1/2">
           <Link href="/">Home</Link>
+          <Link href="/search">Search</Link>
+          <Link href="/searches">Searches</Link>
+          <Link href="/templates">Templates</Link>
           <Link href="/pricing">Pricing</Link>
           <Link href="/dashboard">Dashboard</Link>
         </nav>

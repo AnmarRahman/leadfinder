@@ -117,7 +117,7 @@ export default async function DashboardPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">No searches yet. Use the Chrome extension to get started!</p>
+                  <p className="text-muted-foreground">No searches yet. Run your first search from the web app.</p>
                 )}
               </CardContent>
             </Card>
@@ -129,12 +129,18 @@ export default async function DashboardPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button asChild className="w-full">
-                  <Link href="/leads">View All Leads</Link>
+                  <Link href="/search">Run New Search</Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full bg-transparent">
+                  <Link href="/searches">Saved Searches</Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full bg-transparent">
+                  <Link href="/templates">Email Templates</Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full bg-transparent">
+                  <Link href="/leads">All Leads</Link>
                 </Button>
                 <ExportDialog triggerText="Export All Leads to CSV" />
-                <Button asChild variant="outline" className="w-full bg-transparent">
-                  <Link href="/account">Account Settings</Link>
-                </Button>
               </CardContent>
             </Card>
           </div>

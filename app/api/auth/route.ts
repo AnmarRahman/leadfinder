@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { createRequestClient } from "@/lib/supabase/request"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
@@ -51,8 +52,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
-  const supabase = await createClient()
+export async function GET(request: NextRequest) {
+  const supabase = await createRequestClient(request)
 
   const {
     data: { user },

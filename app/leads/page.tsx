@@ -18,6 +18,7 @@ interface Lead {
   address: string
   phone: string | null
   website: string | null
+  email: string | null
   rating: number | null
   total_ratings: number | null
   created_at: string
@@ -188,9 +189,18 @@ export default function LeadsPage() {
                       {lead.phone && (
                         <div>
                           <p className="text-sm font-medium">Phone</p>
-                          <p className="text-sm text-muted-foreground">{lead.phone}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm text-muted-foreground">{lead.phone}</p>
+                            <a href={`tel:${lead.phone}`} className="text-xs text-blue-600 hover:underline">
+                              Call
+                            </a>
+                          </div>
                         </div>
                       )}
+                      <div>
+                        <p className="text-sm font-medium">Email</p>
+                        <p className="text-sm text-muted-foreground">{lead.email || "No email"}</p>
+                      </div>
                       {lead.website ? (
                         <div>
                           <p className="text-sm font-medium">Website</p>

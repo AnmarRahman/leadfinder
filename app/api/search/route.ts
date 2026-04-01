@@ -1,9 +1,49 @@
 import { GooglePlacesService } from "@/lib/google-places"
-import { createClient } from "@/lib/supabase/server"
+import { createRequestClient } from "@/lib/supabase/request"
+import { findBusinessEmailFromWebsite } from "@/lib/email-enrichment"
 import { type NextRequest, NextResponse } from "next/server"
 
+type WebsiteFilter = "all" | "has-website" | "no-website"
+
+function applyWebsiteFilter(results: Awaited<ReturnType<GooglePlacesService["searchPlaces"]>>, websiteFilter: WebsiteFilter) {
+  if (websiteFilter === "has-website") {
+    return results.filter((result) => Boolean(result.website))
+  }
+
+  if (websiteFilter === "no-website") {
+    return results.filter((result) => !result.website)
+  }
+
+  return results
+}
+
+async function enrichEmails(
+  results: Awaited<ReturnType<GooglePlacesService["searchPlaces"]>>,
+  shouldEnrich: boolean,
+) {
+  if (!shouldEnrich) {
+    return results
+  }
+
+  const enrichedResults: Awaited<ReturnType<GooglePlacesService["searchPlaces"]>> = []
+  for (const result of results) {
+    if (!result.website) {
+      enrichedResults.push(result)
+      continue
+    }
+
+    const email = await findBusinessEmailFromWebsite(result.website)
+    enrichedResults.push({
+      ...result,
+      email: email || undefined,
+    })
+  }
+
+  return enrichedResults
+}
+
 export async function POST(request: NextRequest) {
-  const supabase = await createClient()
+  const supabase = await createRequestClient(request)
 
   // Check authentication
   const {
@@ -16,10 +56,27 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { query, location, maxResults = 20 } = await request.json()
+    const {
+      query,
+      location,
+      maxResults = 20,
+      websiteFilter = "all",
+      findEmails = false,
+    }: {
+      query: string
+      location: string
+      maxResults?: number
+      websiteFilter?: WebsiteFilter
+      findEmails?: boolean
+    } = await request.json()
 
     if (!query || !location) {
       return NextResponse.json({ error: "Query and location are required" }, { status: 400 })
+    }
+
+    const allowedWebsiteFilters: WebsiteFilter[] = ["all", "has-website", "no-website"]
+    if (!allowedWebsiteFilters.includes(websiteFilter)) {
+      return NextResponse.json({ error: "Invalid website filter" }, { status: 400 })
     }
 
     // Check user quota and get subscription tier
@@ -40,6 +97,21 @@ export async function POST(request: NextRequest) {
     }
 
     const maxAllowedResults = tierLimits[userProfile.subscription_tier as keyof typeof tierLimits] || 20
+    const canUseAdvancedFilters = userProfile.subscription_tier === "pro" || userProfile.subscription_tier === "enterprise"
+
+    if (websiteFilter !== "all" && !canUseAdvancedFilters) {
+      return NextResponse.json(
+        { error: "Website filtering requires a Pro or Enterprise subscription." },
+        { status: 403 },
+      )
+    }
+
+    if (findEmails && !canUseAdvancedFilters) {
+      return NextResponse.json(
+        { error: "Email enrichment requires a Pro or Enterprise subscription." },
+        { status: 403 },
+      )
+    }
 
     if (maxResults < 1 || maxResults > maxAllowedResults) {
       return NextResponse.json(
@@ -62,13 +134,21 @@ export async function POST(request: NextRequest) {
 
     const placesService = new GooglePlacesService(googleApiKey)
 
+    const expandedResultsLimit =
+      websiteFilter === "all"
+        ? maxResults
+        : Math.min(maxAllowedResults, Math.max(maxResults * 3, Math.min(maxAllowedResults, maxResults + 15)))
+
     // Search for places
-    const places = await placesService.searchPlaces({
+    const rawPlaces = await placesService.searchPlaces({
       query,
       location,
       radius: 10000, // 10km radius
-      maxResults,
+      maxResults: expandedResultsLimit,
     })
+
+    const filteredPlaces = applyWebsiteFilter(rawPlaces, websiteFilter).slice(0, maxResults)
+    const places = await enrichEmails(filteredPlaces, findEmails)
 
     // Create search record
     const { data: searchRecord, error: searchError } = await supabase
@@ -77,6 +157,8 @@ export async function POST(request: NextRequest) {
         user_id: user.id,
         query,
         location,
+        website_filter: websiteFilter,
+        email_enrichment_enabled: Boolean(findEmails),
         results_count: places.length,
       })
       .select()
@@ -97,9 +179,14 @@ export async function POST(request: NextRequest) {
       rating: place.rating || null,
       total_ratings: place.user_ratings_total || null,
       place_id: place.place_id,
+      email: place.email || null,
     }))
 
-    const { error: leadsError } = await supabase.from("leads").insert(leadsData)
+    let leadsError = null
+    if (leadsData.length > 0) {
+      const insertResponse = await supabase.from("leads").insert(leadsData)
+      leadsError = insertResponse.error
+    }
 
     if (leadsError) {
       console.error("Failed to save leads:", leadsError)

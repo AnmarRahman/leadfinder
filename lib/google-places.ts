@@ -12,6 +12,7 @@ export interface GooglePlaceDetails {
   formatted_address: string
   formatted_phone_number?: string
   website?: string
+  email?: string
   rating?: number
   user_ratings_total?: number
   business_status?: string

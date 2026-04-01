@@ -5,13 +5,13 @@ export async function POST(request: NextRequest) {
   try {
     console.log("[v0] Downgrade to free endpoint called")
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // Get the current user
     const {
       data: { user },
       error: authError,
-    } = await (await supabase).auth.getUser()
+    } = await supabase.auth.getUser()
 
     if (authError || !user) {
       console.log("[v0] User not authenticated:", authError)
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     console.log("[v0] Downgrading user to free:", user.id)
 
     // Update user subscription to free tier
-    const { data, error } = await (await supabase)
+    const { data, error } = await supabase
       .from("users")
       .update({
         subscription_tier: "free",
