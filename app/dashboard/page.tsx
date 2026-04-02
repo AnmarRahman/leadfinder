@@ -3,6 +3,7 @@ import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { isAdminEmail } from "@/lib/admin"
 import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
 import { redirect } from "next/navigation"
@@ -18,6 +19,8 @@ export default async function DashboardPage() {
   if (error || !user) {
     redirect("/auth/login")
   }
+
+  const isAdmin = isAdminEmail(user.email)
 
   // Get user profile and recent searches
   const { data: profile } = await supabase.from("users").select("*").eq("id", user.id).single()
@@ -140,6 +143,11 @@ export default async function DashboardPage() {
                 <Button asChild variant="outline" className="w-full bg-transparent">
                   <Link href="/leads">All Leads</Link>
                 </Button>
+                {isAdmin && (
+                  <Button asChild variant="outline" className="w-full bg-transparent">
+                    <Link href="/admin">Admin User Manager</Link>
+                  </Button>
+                )}
                 <ExportDialog triggerText="Export All Leads to CSV" />
               </CardContent>
             </Card>

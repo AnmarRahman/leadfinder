@@ -1,4 +1,5 @@
 import { createRequestClient } from "@/lib/supabase/request"
+import { isAdminEmail } from "@/lib/admin"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
@@ -14,6 +15,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
   }
 
+  const isAdmin = isAdminEmail(user.email)
+
   try {
     // Get user profile with subscription tier
     const { data: profile, error: profileError } = await supabase
@@ -28,9 +31,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       profile: {
-        subscription_tier: profile.subscription_tier,
-        monthly_quota: profile.monthly_quota,
-        used_quota: profile.used_quota,
+        subscription_tier: isAdmin ? "enterprise" : profile.subscription_tier,
+        monthly_quota: isAdmin ? null : profile.monthly_quota,
+        used_quota: isAdmin ? 0 : profile.used_quota,
+        is_admin: isAdmin,
       },
     })
   } catch (error) {

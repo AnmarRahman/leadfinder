@@ -1,4 +1,5 @@
 import { createRequestClient } from "@/lib/supabase/request"
+import { isAdminEmail } from "@/lib/admin"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
@@ -13,6 +14,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
   }
 
+  const isAdmin = isAdminEmail(user.email)
+
   const { data: userProfile, error: profileError } = await supabase
     .from("users")
     .select("monthly_quota, used_quota, subscription_tier")
@@ -24,9 +27,11 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({
-    monthlyQuota: userProfile.monthly_quota,
-    usedQuota: userProfile.used_quota,
-    remainingQuota: userProfile.monthly_quota - userProfile.used_quota,
-    subscriptionTier: userProfile.subscription_tier,
+    monthlyQuota: isAdmin ? null : userProfile.monthly_quota,
+    usedQuota: isAdmin ? 0 : userProfile.used_quota,
+    remainingQuota: isAdmin ? null : userProfile.monthly_quota - userProfile.used_quota,
+    subscriptionTier: isAdmin ? "enterprise" : userProfile.subscription_tier,
+    isAdmin,
+    unlimited: isAdmin,
   })
 }

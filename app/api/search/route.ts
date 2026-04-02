@@ -1,6 +1,7 @@
 import { GooglePlacesService } from "@/lib/google-places"
 import { createRequestClient } from "@/lib/supabase/request"
 import { findBusinessEmailFromWebsite } from "@/lib/email-enrichment"
+import { isAdminEmail } from "@/lib/admin"
 import { type NextRequest, NextResponse } from "next/server"
 
 type WebsiteFilter = "all" | "has-website" | "no-website"
@@ -55,6 +56,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
   }
 
+  const isAdmin = isAdminEmail(user.email)
+
   try {
     const {
       query,
@@ -96,8 +99,9 @@ export async function POST(request: NextRequest) {
       enterprise: 100,
     }
 
-    const maxAllowedResults = tierLimits[userProfile.subscription_tier as keyof typeof tierLimits] || 20
-    const canUseAdvancedFilters = userProfile.subscription_tier === "pro" || userProfile.subscription_tier === "enterprise"
+    const maxAllowedResults = isAdmin ? 100 : tierLimits[userProfile.subscription_tier as keyof typeof tierLimits] || 20
+    const canUseAdvancedFilters =
+      isAdmin || userProfile.subscription_tier === "pro" || userProfile.subscription_tier === "enterprise"
 
     if (websiteFilter !== "all" && !canUseAdvancedFilters) {
       return NextResponse.json(
@@ -122,7 +126,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (userProfile.used_quota >= userProfile.monthly_quota) {
+    if (!isAdmin && userProfile.used_quota >= userProfile.monthly_quota) {
       return NextResponse.json({ error: "Monthly quota exceeded" }, { status: 429 })
     }
 
@@ -194,19 +198,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Update user quota
-    const { error: quotaError } = await supabase
-      .from("users")
-      .update({ used_quota: userProfile.used_quota + 1 })
-      .eq("id", user.id)
+    if (!isAdmin) {
+      const { error: quotaError } = await supabase
+        .from("users")
+        .update({ used_quota: userProfile.used_quota + 1 })
+        .eq("id", user.id)
 
-    if (quotaError) {
-      console.error("Failed to update quota:", quotaError)
+      if (quotaError) {
+        console.error("Failed to update quota:", quotaError)
+      }
     }
 
     return NextResponse.json({
       searchId: searchRecord.id,
       results: places,
-      remainingQuota: userProfile.monthly_quota - userProfile.used_quota - 1,
+      remainingQuota: isAdmin ? null : userProfile.monthly_quota - userProfile.used_quota - 1,
+      isAdmin,
     })
   } catch (error) {
     console.error("Search error:", error)
