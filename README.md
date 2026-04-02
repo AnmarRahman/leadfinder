@@ -92,6 +92,21 @@ STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
 STRIPE_PRO_PRICE_ID=your_stripe_pro_price_id
 STRIPE_ENTERPRISE_PRICE_ID=your_stripe_enterprise_price_id
 
+# Email Sending (Gmail recommended for no-domain setup)
+EMAIL_PROVIDER=gmail
+GMAIL_CLIENT_ID=your_google_oauth_client_id
+GMAIL_CLIENT_SECRET=your_google_oauth_client_secret
+GMAIL_REFRESH_TOKEN=your_google_oauth_refresh_token
+GMAIL_SENDER_EMAIL=yourgmail@gmail.com
+GMAIL_REPLY_TO=yourgmail@gmail.com
+
+# Optional Resend fallback
+RESEND_API_KEY=your_resend_api_key
+RESEND_FROM_EMAIL=your_verified_sender
+
+# Optional root/admin accounts
+ADMIN_EMAILS=you@yourdomain.com,ops@yourdomain.com
+
 # Application URLs
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000/dashboard
