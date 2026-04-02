@@ -41,8 +41,12 @@ export default function SearchPage() {
   const [websiteFilter, setWebsiteFilter] = useState<"all" | "has-website" | "no-website">("all")
   const [findEmails, setFindEmails] = useState(false)
   const [results, setResults] = useState<SearchResult[]>([])
+  const [resultWebsiteFilter, setResultWebsiteFilter] = useState<"all" | "with-website" | "without-website">("all")
+  const [resultEmailFilter, setResultEmailFilter] = useState<"all" | "with-email" | "without-email">("all")
   const [searchId, setSearchId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [progressText, setProgressText] = useState("Preparing search...")
   const [error, setError] = useState<string | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
 
@@ -85,6 +89,39 @@ export default function SearchPage() {
     }
   }, [advancedEnabled])
 
+  useEffect(() => {
+    if (!loading) {
+      return
+    }
+
+    const progressSteps = [
+      "Preparing search...",
+      "Querying Google Maps...",
+      "Fetching business details...",
+      "Saving leads...",
+      "Finalizing results...",
+    ]
+
+    let stepIndex = 0
+    let currentProgress = 8
+
+    setProgress(currentProgress)
+    setProgressText(progressSteps[stepIndex])
+
+    const interval = setInterval(() => {
+      currentProgress = Math.min(92, currentProgress + Math.random() * 10 + 4)
+      setProgress(currentProgress)
+
+      const targetStep = Math.min(progressSteps.length - 1, Math.floor((currentProgress / 100) * progressSteps.length))
+      if (targetStep > stepIndex) {
+        stepIndex = targetStep
+        setProgressText(progressSteps[stepIndex])
+      }
+    }, 700)
+
+    return () => clearInterval(interval)
+  }, [loading])
+
   const resultStats = useMemo(() => {
     const withWebsite = results.filter((result) => Boolean(result.website)).length
     const withoutWebsite = results.length - withWebsite
@@ -93,10 +130,32 @@ export default function SearchPage() {
     return { withWebsite, withoutWebsite, withEmail }
   }, [results])
 
+  const filteredResults = useMemo(() => {
+    return results.filter((result) => {
+      if (resultWebsiteFilter === "with-website" && !result.website) {
+        return false
+      }
+      if (resultWebsiteFilter === "without-website" && result.website) {
+        return false
+      }
+      if (resultEmailFilter === "with-email" && !result.email) {
+        return false
+      }
+      if (resultEmailFilter === "without-email" && result.email) {
+        return false
+      }
+      return true
+    })
+  }, [results, resultWebsiteFilter, resultEmailFilter])
+
   const handleSearch = async () => {
     setLoading(true)
+    setProgress(5)
+    setProgressText("Preparing search...")
     setError(null)
     setResults([])
+    setResultWebsiteFilter("all")
+    setResultEmailFilter("all")
     setSearchId(null)
 
     try {
@@ -119,6 +178,8 @@ export default function SearchPage() {
         throw new Error(data.error || "Search failed")
       }
 
+      setProgress(100)
+      setProgressText("Results ready")
       setResults(data.results || [])
       setSearchId(data.searchId)
     } catch (searchError) {
@@ -222,6 +283,21 @@ export default function SearchPage() {
               {loading ? "Searching..." : "Run Search"}
             </Button>
 
+            {loading && (
+              <div className="space-y-2 rounded-md border p-3">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{progressText}</span>
+                  <span>{Math.round(progress)}%</span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full bg-primary transition-all duration-500 ease-out"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
             {error && <p className="text-sm text-red-500">{error}</p>}
           </CardContent>
         </Card>
@@ -232,7 +308,9 @@ export default function SearchPage() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                 <div>
                   <CardTitle>Search Results</CardTitle>
-                  <CardDescription>{results.length} leads were saved to your account.</CardDescription>
+                  <CardDescription>
+                    Showing {filteredResults.length} of {results.length} leads saved to your account.
+                  </CardDescription>
                 </div>
                 {searchId && (
                   <Button asChild>
@@ -248,39 +326,79 @@ export default function SearchPage() {
                 <Badge variant="secondary">With email: {resultStats.withEmail}</Badge>
               </div>
 
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Filter by Website</Label>
+                  <Select
+                    value={resultWebsiteFilter}
+                    onValueChange={(value: "all" | "with-website" | "without-website") => setResultWebsiteFilter(value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All website statuses</SelectItem>
+                      <SelectItem value="with-website">With website</SelectItem>
+                      <SelectItem value="without-website">Without website</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Filter by Email</Label>
+                  <Select value={resultEmailFilter} onValueChange={(value: "all" | "with-email" | "without-email") => setResultEmailFilter(value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All email statuses</SelectItem>
+                      <SelectItem value="with-email">With email</SelectItem>
+                      <SelectItem value="without-email">Without email</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               <div className="grid gap-4">
-                {results.map((result) => (
-                  <Card key={result.place_id}>
-                    <CardContent className="py-4 space-y-2">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="font-semibold">{result.name}</p>
-                          <p className="text-sm text-muted-foreground">{result.formatted_address}</p>
-                        </div>
-                        {!result.website && <Badge variant="outline">No website</Badge>}
-                      </div>
-                      <div className="grid gap-2 md:grid-cols-3 text-sm">
-                        <p>{result.formatted_phone_number || "No phone found"}</p>
-                        <p>{result.email || "No email found"}</p>
-                        {result.website ? (
-                          <a href={result.website} target="_blank" rel="noopener noreferrer" className="text-blue-600">
-                            Visit website
-                          </a>
-                        ) : (
-                          <span className="text-muted-foreground">No website</span>
-                        )}
-                      </div>
-                      {result.formatted_phone_number && (
-                        <Button asChild variant="outline" size="sm" className="gap-2 bg-transparent">
-                          <a href={`tel:${result.formatted_phone_number}`}>
-                            <PhoneCall className="h-4 w-4" />
-                            Call
-                          </a>
-                        </Button>
-                      )}
+                {filteredResults.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-8 text-center text-sm text-muted-foreground">
+                      No leads match the selected website/email filters.
                     </CardContent>
                   </Card>
-                ))}
+                ) : (
+                  filteredResults.map((result) => (
+                    <Card key={result.place_id}>
+                      <CardContent className="py-4 space-y-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="font-semibold">{result.name}</p>
+                            <p className="text-sm text-muted-foreground">{result.formatted_address}</p>
+                          </div>
+                          {!result.website && <Badge variant="outline">No website</Badge>}
+                        </div>
+                        <div className="grid gap-2 md:grid-cols-3 text-sm">
+                          <p>{result.formatted_phone_number || "No phone found"}</p>
+                          <p>{result.email || "No email found"}</p>
+                          {result.website ? (
+                            <a href={result.website} target="_blank" rel="noopener noreferrer" className="text-blue-600">
+                              Visit website
+                            </a>
+                          ) : (
+                            <span className="text-muted-foreground">No website</span>
+                          )}
+                        </div>
+                        {result.formatted_phone_number && (
+                          <Button asChild variant="outline" size="sm" className="gap-2 bg-transparent">
+                            <a href={`tel:${result.formatted_phone_number}`}>
+                              <PhoneCall className="h-4 w-4" />
+                              Call
+                            </a>
+                          </Button>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
