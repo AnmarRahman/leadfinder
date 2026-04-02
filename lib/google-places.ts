@@ -6,6 +6,21 @@ export interface GooglePlacesSearchParams {
   maxResults?: number
 }
 
+export class GooglePlacesQuotaError extends Error {
+  constructor(message = "Google API quota has been exceeded.") {
+    super(message)
+    this.name = "GooglePlacesQuotaError"
+  }
+}
+
+const QUOTA_ERROR_STATUSES = new Set(["OVER_QUERY_LIMIT", "OVER_DAILY_LIMIT"])
+
+function throwIfQuotaExceeded(status: string, context: string) {
+  if (QUOTA_ERROR_STATUSES.has(status)) {
+    throw new GooglePlacesQuotaError(`${context}: Google API quota has been exceeded.`)
+  }
+}
+
 export interface GooglePlaceDetails {
   place_id: string
   name: string
@@ -65,6 +80,7 @@ export class GooglePlacesService {
 
       const searchResponse = await fetch(searchUrl)
       const searchData = await searchResponse.json()
+      throwIfQuotaExceeded(searchData.status, "Place search")
 
       if (searchData.status !== "OK") {
         break
@@ -120,6 +136,7 @@ export class GooglePlacesService {
 
         const searchResponse = await fetch(searchUrl)
         const searchData = await searchResponse.json()
+        throwIfQuotaExceeded(searchData.status, "Place search")
 
         if (searchData.status === "OK") {
           // Add unique results only
@@ -134,6 +151,9 @@ export class GooglePlacesService {
         // Small delay between requests
         await new Promise((resolve) => setTimeout(resolve, 500))
       } catch (error) {
+        if (error instanceof GooglePlacesQuotaError) {
+          throw error
+        }
         console.error(`Error with search variation "${searchQuery}":`, error)
       }
     }
@@ -155,6 +175,7 @@ export class GooglePlacesService {
 
     const geocodeResponse = await fetch(geocodeUrl)
     const geocodeData = await geocodeResponse.json()
+    throwIfQuotaExceeded(geocodeData.status, "Geocoding")
 
     if (geocodeData.status !== "OK" || !geocodeData.results.length) {
       throw new Error("Invalid location provided")
@@ -182,6 +203,7 @@ export class GooglePlacesService {
     try {
       const response = await fetch(detailsUrl)
       const data = await response.json()
+      throwIfQuotaExceeded(data.status, "Place details")
 
       if (data.status === "OK") {
         return data.result

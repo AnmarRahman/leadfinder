@@ -1,4 +1,4 @@
-import { GooglePlacesService } from "@/lib/google-places"
+import { GooglePlacesQuotaError, GooglePlacesService } from "@/lib/google-places"
 import { createRequestClient } from "@/lib/supabase/request"
 import { findBusinessEmailFromWebsite } from "@/lib/email-enrichment"
 import { isAdminEmail } from "@/lib/admin"
@@ -216,6 +216,16 @@ export async function POST(request: NextRequest) {
       isAdmin,
     })
   } catch (error) {
+    if (error instanceof GooglePlacesQuotaError) {
+      return NextResponse.json(
+        {
+          error: "Google API quota has been exceeded. Please try again later.",
+          code: "GOOGLE_API_QUOTA_EXCEEDED",
+        },
+        { status: 429 },
+      )
+    }
+
     console.error("Search error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
