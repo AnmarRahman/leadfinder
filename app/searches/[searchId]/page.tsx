@@ -22,6 +22,7 @@ interface SearchInfo {
   results_count: number
   website_filter: string
   email_enrichment_enabled: boolean
+  scheduled_search_id: string | null
   created_at: string
 }
 
@@ -34,6 +35,7 @@ interface Lead {
   email: string | null
   rating: number | null
   total_ratings: number | null
+  is_new_in_run: boolean
   created_at: string
 }
 
@@ -45,6 +47,7 @@ interface EmailTemplate {
 }
 
 export default function SearchDetailsPage() {
+  const smsEnabled = process.env.NEXT_PUBLIC_SMS_ENABLED === "true"
   const params = useParams<{ searchId: string }>()
   const searchIdParam = params?.searchId
   const searchId = Array.isArray(searchIdParam) ? searchIdParam[0] : searchIdParam || ""
@@ -59,6 +62,8 @@ export default function SearchDetailsPage() {
   const [error, setError] = useState<string | null>(null)
   const [emailDrafts, setEmailDrafts] = useState<Record<string, string>>({})
   const [savingLeadId, setSavingLeadId] = useState<string | null>(null)
+  const [smsMessage, setSmsMessage] = useState("")
+  const [sendingSms, setSendingSms] = useState(false)
 
   useEffect(() => {
     if (!searchId) {
@@ -181,6 +186,52 @@ export default function SearchDetailsPage() {
     }
   }
 
+  const handleSendSms = async (sendSelectedOnly: boolean) => {
+    if (!smsEnabled) {
+      setError("SMS sending is temporarily disabled.")
+      return
+    }
+
+    if (!smsMessage.trim()) {
+      setError("Write an SMS message before sending.")
+      return
+    }
+
+    if (sendSelectedOnly && selectedLeadIds.length === 0) {
+      setError("Select at least one lead before using 'Send SMS to Selected'.")
+      return
+    }
+
+    setSendingSms(true)
+    setError(null)
+    setMessage(null)
+
+    try {
+      const response = await fetch("/api/sms-campaigns/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: smsMessage,
+          searchId,
+          leadIds: sendSelectedOnly ? selectedLeadIds : undefined,
+        }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send SMS")
+      }
+
+      setMessage(`SMS campaign complete. Sent: ${data.sent}, failed: ${data.failed}, skipped: ${data.skipped}.`)
+    } catch (sendError) {
+      setError(sendError instanceof Error ? sendError.message : "SMS send failed")
+    } finally {
+      setSendingSms(false)
+    }
+  }
+
   const saveLeadEmail = async (leadId: string) => {
     const email = emailDrafts[leadId] || ""
 
@@ -244,9 +295,12 @@ export default function SearchDetailsPage() {
       <main className="flex-1 container p-6 space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-3xl font-bold">
-              {search.query} in {search.location}
-            </h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-3xl font-bold">
+                {search.query} in {search.location}
+              </h1>
+              {search.scheduled_search_id && <Badge variant="secondary">Automation Run</Badge>}
+            </div>
             <p className="text-muted-foreground">Saved on {new Date(search.created_at).toLocaleString()}</p>
           </div>
           <div className="flex gap-2">
@@ -262,7 +316,7 @@ export default function SearchDetailsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Outreach Summary</CardTitle>
-            <CardDescription>Select leads and launch your email campaign.</CardDescription>
+            <CardDescription>Select leads and launch your email and SMS campaigns.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-2">
@@ -294,6 +348,33 @@ export default function SearchDetailsPage() {
               <Button onClick={() => handleSendEmails(false)} disabled={sending} variant="outline">
                 {sending ? "Sending..." : "Send to All in Search"}
               </Button>
+            </div>
+
+            <div className="space-y-3 rounded-md border p-3">
+              <p className="text-sm font-medium">SMS Outreach</p>
+              <Textarea
+                value={smsMessage}
+                onChange={(event) => setSmsMessage(event.target.value)}
+                placeholder="Hi {{business_name}}, I noticed your Google listing and wanted to help with your website."
+                className="min-h-24"
+                disabled={!smsEnabled}
+              />
+              <p className="text-xs text-muted-foreground">
+                Supports placeholders like {"{{business_name}}"}, {"{{phone}}"}, and {"{{website}}"}.
+              </p>
+              {!smsEnabled && (
+                <p className="text-xs text-muted-foreground">
+                  SMS is currently disabled. You can still copy phone numbers and send manually.
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={() => handleSendSms(true)} disabled={!smsEnabled || sendingSms}>
+                  {sendingSms ? "Sending SMS..." : "Send SMS to Selected"}
+                </Button>
+                <Button onClick={() => handleSendSms(false)} disabled={!smsEnabled || sendingSms} variant="outline">
+                  {sendingSms ? "Sending SMS..." : "Send SMS to All in Search"}
+                </Button>
+              </div>
             </div>
 
             {templates.length === 0 && (
@@ -331,7 +412,7 @@ export default function SearchDetailsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Leads</CardTitle>
-            <CardDescription>Pick leads, edit missing emails, call leads, and send templates.</CardDescription>
+            <CardDescription>Pick leads, edit missing emails, call leads, and send email or SMS outreach.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2">
@@ -358,6 +439,7 @@ export default function SearchDetailsPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
+                        {lead.is_new_in_run && <Badge variant="secondary">New this run</Badge>}
                         {!lead.website && <Badge variant="outline">No website</Badge>}
                         {lead.phone && (
                           <Button asChild size="sm" variant="outline" className="gap-2 bg-transparent">

@@ -141,6 +141,9 @@ export default async function DashboardPage() {
                   <Link href="/templates">Email Templates</Link>
                 </Button>
                 <Button asChild variant="outline" className="w-full bg-transparent">
+                  <Link href="/automations">Weekly Automations</Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full bg-transparent">
                   <Link href="/leads">All Leads</Link>
                 </Button>
                 {isAdmin && (

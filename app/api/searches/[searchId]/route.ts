@@ -21,7 +21,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   const { data: search, error: searchError } = await supabase
     .from("searches")
-    .select("id, query, location, results_count, website_filter, email_enrichment_enabled, created_at")
+    .select("id, query, location, results_count, website_filter, email_enrichment_enabled, scheduled_search_id, created_at")
     .eq("id", searchId)
     .eq("user_id", user.id)
     .single()
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   const { data: leads, error: leadsError } = await supabase
     .from("leads")
-    .select("id, business_name, address, phone, website, email, rating, total_ratings, created_at")
+    .select("id, business_name, address, phone, website, email, rating, total_ratings, is_new_in_run, created_at")
     .eq("search_id", searchId)
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })

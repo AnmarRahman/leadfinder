@@ -17,6 +17,7 @@ export interface Search {
   location: string
   website_filter?: "all" | "has-website" | "no-website"
   email_enrichment_enabled?: boolean
+  scheduled_search_id?: string | null
   results_count: number
   created_at: string
 }
@@ -33,6 +34,8 @@ export interface Lead {
   rating?: number
   total_ratings?: number
   place_id?: string
+  scheduled_search_id?: string | null
+  is_new_in_run?: boolean
   created_at: string
 }
 

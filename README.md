@@ -104,8 +104,16 @@ GMAIL_REPLY_TO=yourgmail@gmail.com
 RESEND_API_KEY=your_resend_api_key
 RESEND_FROM_EMAIL=your_verified_sender
 
+# SMS Sending (Twilio)
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_FROM_NUMBER=+15551234567
+
 # Optional root/admin accounts
 ADMIN_EMAILS=you@yourdomain.com,ops@yourdomain.com
+
+# Scheduled search cron security (recommended in production)
+CRON_SECRET=your_random_long_secret
 
 # Application URLs
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
@@ -115,8 +123,10 @@ NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000/dashboard
 **Set up the database:**
 Run the SQL script in your Supabase SQL editor:
 \`\`\`sql
--- Execute the script located in scripts/001_create_database_schema.sql
--- This creates the users, searches, and leads tables with proper RLS policies
+-- Execute scripts in order:
+-- 1) scripts/001_create_database_schema.sql
+-- 2) scripts/002_add_outreach_features.sql
+-- 3) scripts/003_add_automation_and_sms.sql
 \`\`\`
 
 **Configure Google Places API:**
@@ -167,6 +177,13 @@ Visit the app at http://localhost:3000
 - `GET /api/leads` - Get user's leads with pagination and filtering
 - `GET /api/leads/export` - Basic CSV export of leads
 - `GET /api/leads/export/advanced` - Advanced CSV export with custom options
+- `GET /api/scheduled-searches` - List weekly scheduled searches + recent runs
+- `POST /api/scheduled-searches` - Create a weekly scheduled search
+- `PATCH /api/scheduled-searches/:id` - Update/pause/resume a schedule
+- `DELETE /api/scheduled-searches/:id` - Delete a schedule
+- `POST /api/scheduled-searches/:id/run` - Run one scheduled search immediately
+- `GET /api/scheduled-searches/run-due` - Cron endpoint to run all due schedules
+- `POST /api/sms-campaigns/send` - Send SMS to leads in a search or selected leads
 
 ### User Management
 - `GET /api/user/quota` - Get current quota usage and limits

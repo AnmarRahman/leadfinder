@@ -117,6 +117,40 @@ Search for business leads using Google Places API.
 }
 \`\`\`
 
+### Scheduled Search Automation
+
+#### GET /api/scheduled-searches
+List the authenticated user's weekly scheduled searches and recent run history.
+
+#### POST /api/scheduled-searches
+Create a weekly scheduled search.
+
+**Request Body:**
+\`\`\`json
+{
+  "name": "Dentists in Montreal weekly",
+  "query": "dentist",
+  "location": "Montreal, QC",
+  "maxResults": 50,
+  "websiteFilter": "all",
+  "findEmails": false,
+  "nextRunAt": "2026-04-16T10:00:00.000Z",
+  "enabled": true
+}
+\`\`\`
+
+#### PATCH /api/scheduled-searches/:scheduleId
+Update or pause/resume an existing weekly scheduled search.
+
+#### DELETE /api/scheduled-searches/:scheduleId
+Delete a scheduled search.
+
+#### POST /api/scheduled-searches/:scheduleId/run
+Run one scheduled search immediately (manual trigger).
+
+#### GET /api/scheduled-searches/run-due
+Cron endpoint that runs all due scheduled searches.
+
 ### Lead Management
 
 #### GET /api/leads
@@ -202,6 +236,23 @@ Same as `/api/leads/export` but with customizable fields.
       "count": 30
     }
   ]
+}
+\`\`\`
+
+### Outreach
+
+#### POST /api/email-campaigns/send
+Send an email template campaign to all leads in a search or a selected list of lead IDs.
+
+#### POST /api/sms-campaigns/send
+Send SMS outreach to all leads in a search or a selected list of lead IDs.
+
+**Request Body:**
+\`\`\`json
+{
+  "message": "Hi {{business_name}}, I can help you build a website.",
+  "searchId": "uuid",
+  "leadIds": ["uuid1", "uuid2"]
 }
 \`\`\`
 

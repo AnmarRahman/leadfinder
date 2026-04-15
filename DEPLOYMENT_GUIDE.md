@@ -19,9 +19,11 @@ This guide provides step-by-step instructions for deploying LeadFinder to produc
 
 ### 1.2 Run Database Migrations
 1. Go to SQL Editor in Supabase dashboard
-2. Copy and paste the contents of `scripts/001_create_database_schema.sql`
-3. Execute the script
-4. Verify tables are created with proper RLS policies
+2. Execute the scripts in order:
+   - `scripts/001_create_database_schema.sql`
+   - `scripts/002_add_outreach_features.sql`
+   - `scripts/003_add_automation_and_sms.sql`
+3. Verify tables are created with proper RLS policies
 
 ### 1.3 Configure Authentication
 1. Go to Authentication > Settings
@@ -87,6 +89,9 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 # Google Places
 GOOGLE_PLACES_API_KEY=your_google_api_key
 
+# Cron security (used by /api/scheduled-searches/run-due)
+CRON_SECRET=your_random_long_secret
+
 # Stripe
 STRIPE_SECRET_KEY=sk_live_your_secret_key
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_your_publishable_key
@@ -94,9 +99,30 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
 STRIPE_PRO_PRICE_ID=price_your_pro_price_id
 STRIPE_ENTERPRISE_PRICE_ID=price_your_enterprise_price_id
 
+# Email sending (Gmail or Resend)
+EMAIL_PROVIDER=gmail
+GMAIL_CLIENT_ID=your_google_oauth_client_id
+GMAIL_CLIENT_SECRET=your_google_oauth_client_secret
+GMAIL_REFRESH_TOKEN=your_google_oauth_refresh_token
+GMAIL_SENDER_EMAIL=yourgmail@gmail.com
+GMAIL_REPLY_TO=yourgmail@gmail.com
+RESEND_API_KEY=re_xxx_optional
+RESEND_FROM_EMAIL=sender@yourdomain.com_optional
+
+# SMS sending (Twilio)
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_FROM_NUMBER=+15551234567
+
 # URLs
 NEXT_PUBLIC_SITE_URL=https://your-domain.vercel.app
 \`\`\`
+
+### 4.3 Configure Vercel Cron Job
+1. Keep `vercel.json` in the repo (already configured)
+2. Confirm this cron is active after deployment:
+   - `0 * * * *` -> `GET /api/scheduled-searches/run-due`
+3. Keep `CRON_SECRET` set in Vercel to protect the cron endpoint
 
 ### 4.3 Configure Custom Domain (Optional)
 1. Go to Vercel Dashboard > Domains

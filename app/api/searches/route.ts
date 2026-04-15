@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
   const { data: searches, error } = await supabase
     .from("searches")
-    .select("id, query, location, results_count, website_filter, email_enrichment_enabled, created_at")
+    .select("id, query, location, results_count, website_filter, email_enrichment_enabled, scheduled_search_id, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
 
