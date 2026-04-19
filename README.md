@@ -103,6 +103,7 @@ GMAIL_REPLY_TO=yourgmail@gmail.com
 # Optional Resend fallback
 RESEND_API_KEY=your_resend_api_key
 RESEND_FROM_EMAIL=your_verified_sender
+RESEND_WEBHOOK_SECRET=your_resend_webhook_secret
 
 # SMS Sending (Twilio)
 TWILIO_ACCOUNT_SID=your_twilio_account_sid
@@ -127,6 +128,7 @@ Run the SQL script in your Supabase SQL editor:
 -- 1) scripts/001_create_database_schema.sql
 -- 2) scripts/002_add_outreach_features.sql
 -- 3) scripts/003_add_automation_and_sms.sql
+-- 4) scripts/004_add_email_delivery_tracking.sql
 \`\`\`
 
 **Configure Google Places API:**
@@ -184,6 +186,7 @@ Visit the app at http://localhost:3000
 - `POST /api/scheduled-searches/:id/run` - Run one scheduled search immediately
 - `GET /api/scheduled-searches/run-due` - Cron endpoint to run all due schedules
 - `POST /api/sms-campaigns/send` - Send SMS to leads in a search or selected leads
+- `POST /api/webhooks/resend` - Receive Resend delivery events and update send status
 
 ### User Management
 - `GET /api/user/quota` - Get current quota usage and limits

@@ -110,7 +110,11 @@ export async function POST(request: NextRequest) {
     user_id: string
     lead_id: string
     recipient_email: string
+    provider: "gmail" | "resend" | "unknown"
+    provider_message_id: string | null
     status: "sent" | "failed"
+    delivery_status: "accepted" | "failed"
+    delivery_error: string | null
     error_message: string | null
     sent_at: string
   }> = []
@@ -123,7 +127,7 @@ export async function POST(request: NextRequest) {
     const renderedBody = renderTemplate(template.body, lead)
 
     try {
-      await sendEmail({
+      const sendResult = await sendEmail({
         to: lead.email as string,
         subject: renderedSubject,
         html: toSimpleHtml(renderedBody),
@@ -134,7 +138,11 @@ export async function POST(request: NextRequest) {
         user_id: user.id,
         lead_id: lead.id,
         recipient_email: lead.email as string,
+        provider: sendResult.provider,
+        provider_message_id: sendResult.providerMessageId,
         status: "sent",
+        delivery_status: "accepted",
+        delivery_error: null,
         error_message: null,
         sent_at: new Date().toISOString(),
       })
@@ -145,7 +153,11 @@ export async function POST(request: NextRequest) {
         user_id: user.id,
         lead_id: lead.id,
         recipient_email: lead.email as string,
+        provider: "unknown",
+        provider_message_id: null,
         status: "failed",
+        delivery_status: "failed",
+        delivery_error: error instanceof Error ? error.message : "Unknown send error",
         error_message: error instanceof Error ? error.message : "Unknown send error",
         sent_at: new Date().toISOString(),
       })
@@ -154,7 +166,24 @@ export async function POST(request: NextRequest) {
   }
 
   if (sendLogRows.length > 0) {
-    await supabase.from("email_sends").insert(sendLogRows)
+    const { error: insertError } = await supabase.from("email_sends").insert(sendLogRows)
+    if (insertError) {
+      // Backward compatibility: if migration 004 has not run yet, retry with legacy columns only.
+      const legacyRows = sendLogRows.map((row) => ({
+        campaign_id: row.campaign_id,
+        user_id: row.user_id,
+        lead_id: row.lead_id,
+        recipient_email: row.recipient_email,
+        status: row.status,
+        error_message: row.error_message,
+        sent_at: row.sent_at,
+      }))
+
+      const { error: legacyInsertError } = await supabase.from("email_sends").insert(legacyRows)
+      if (legacyInsertError) {
+        console.error("Failed to log email sends:", legacyInsertError)
+      }
+    }
   }
 
   await supabase

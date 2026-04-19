@@ -36,6 +36,10 @@ interface Lead {
   rating: number | null
   total_ratings: number | null
   is_new_in_run: boolean
+  last_email_send_status: string | null
+  last_email_delivery_status: string | null
+  last_email_delivery_error: string | null
+  last_email_sent_at: string | null
   created_at: string
 }
 
@@ -479,6 +483,25 @@ export default function SearchDetailsPage() {
                       )}
                       <span>{lead.email || "No email"}</span>
                     </div>
+                    {(lead.last_email_send_status || lead.last_email_delivery_status) && (
+                      <div className="text-xs text-muted-foreground flex flex-wrap gap-3">
+                        <span>
+                          Last email send: <span className="font-medium">{lead.last_email_send_status || "unknown"}</span>
+                        </span>
+                        <span>
+                          Delivery:{" "}
+                          <span className="font-medium">
+                            {lead.last_email_delivery_status || "pending / not tracked"}
+                          </span>
+                        </span>
+                        {lead.last_email_sent_at && (
+                          <span>Sent at: {new Date(lead.last_email_sent_at).toLocaleString()}</span>
+                        )}
+                        {lead.last_email_delivery_error && (
+                          <span className="text-red-500">Reason: {lead.last_email_delivery_error}</span>
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}

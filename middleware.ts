@@ -2,7 +2,10 @@ import { updateSession } from "@/lib/supabase/middleware"
 import type { NextRequest } from "next/server"
 
 export async function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname === "/api/stripe/webhook") {
+  if (
+    request.nextUrl.pathname === "/api/stripe/webhook" ||
+    request.nextUrl.pathname === "/api/webhooks/resend"
+  ) {
     return
   }
 

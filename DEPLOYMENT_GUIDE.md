@@ -23,6 +23,7 @@ This guide provides step-by-step instructions for deploying LeadFinder to produc
    - `scripts/001_create_database_schema.sql`
    - `scripts/002_add_outreach_features.sql`
    - `scripts/003_add_automation_and_sms.sql`
+   - `scripts/004_add_email_delivery_tracking.sql`
 3. Verify tables are created with proper RLS policies
 
 ### 1.3 Configure Authentication
@@ -108,6 +109,7 @@ GMAIL_SENDER_EMAIL=yourgmail@gmail.com
 GMAIL_REPLY_TO=yourgmail@gmail.com
 RESEND_API_KEY=re_xxx_optional
 RESEND_FROM_EMAIL=sender@yourdomain.com_optional
+RESEND_WEBHOOK_SECRET=whsec_resend_xxx
 
 # SMS sending (Twilio)
 TWILIO_ACCOUNT_SID=your_twilio_account_sid
@@ -121,8 +123,21 @@ NEXT_PUBLIC_SITE_URL=https://your-domain.vercel.app
 ### 4.3 Configure Vercel Cron Job
 1. Keep `vercel.json` in the repo (already configured)
 2. Confirm this cron is active after deployment:
-   - `0 * * * *` -> `GET /api/scheduled-searches/run-due`
+   - `0 0 * * *` -> `GET /api/scheduled-searches/run-due`
 3. Keep `CRON_SECRET` set in Vercel to protect the cron endpoint
+
+### 4.4 Configure Resend Webhook (Email Delivery Tracking)
+1. In Resend Dashboard, create a webhook endpoint:
+   - `https://your-domain.vercel.app/api/webhooks/resend`
+2. Select events:
+   - `email.delivered`
+   - `email.bounced`
+   - `email.failed`
+   - `email.complained`
+   - `email.opened`
+   - `email.clicked`
+   - `email.delivery_delayed`
+3. Copy the webhook signing secret into `RESEND_WEBHOOK_SECRET` in Vercel.
 
 ### 4.3 Configure Custom Domain (Optional)
 1. Go to Vercel Dashboard > Domains

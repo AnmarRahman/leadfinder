@@ -256,6 +256,26 @@ Send SMS outreach to all leads in a search or a selected list of lead IDs.
 }
 \`\`\`
 
+#### POST /api/webhooks/resend
+Receives Resend webhook delivery events and updates `email_sends` records.
+
+**Required Header Verification Inputs:**
+- `svix-id`
+- `svix-timestamp`
+- `svix-signature`
+
+**Required Environment Variable:**
+- `RESEND_WEBHOOK_SECRET`
+
+**Supported Event Types:**
+- `email.delivered`
+- `email.bounced`
+- `email.failed`
+- `email.complained`
+- `email.opened`
+- `email.clicked`
+- `email.delivery_delayed`
+
 ### User Management
 
 #### GET /api/user/quota
@@ -379,6 +399,33 @@ interface Lead {
   total_ratings?: number
   place_id?: string
   created_at: string
+}
+\`\`\`
+
+### Email Send Record
+\`\`\`typescript
+interface EmailSend {
+  id: string
+  campaign_id: string
+  user_id: string
+  lead_id?: string
+  recipient_email: string
+  status: 'sent' | 'failed' | 'skipped'
+  provider: 'gmail' | 'resend' | 'unknown'
+  provider_message_id?: string
+  delivery_status:
+    | 'accepted'
+    | 'delivered'
+    | 'bounced'
+    | 'failed'
+    | 'complained'
+    | 'opened'
+    | 'clicked'
+    | 'delivery_delayed'
+  delivery_event_at?: string
+  delivery_error?: string
+  error_message?: string
+  sent_at: string
 }
 \`\`\`
 

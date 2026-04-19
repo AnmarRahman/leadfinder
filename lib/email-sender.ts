@@ -6,6 +6,11 @@ interface SendEmailInput {
 
 type EmailProvider = "gmail" | "resend"
 
+export interface SendEmailResult {
+  provider: EmailProvider
+  providerMessageId: string | null
+}
+
 interface GmailTokenState {
   accessToken: string
   expiresAt: number
@@ -88,7 +93,7 @@ async function getGmailAccessToken(): Promise<string> {
   return cachedGmailToken.accessToken
 }
 
-async function sendViaGmail({ to, subject, html }: SendEmailInput): Promise<void> {
+async function sendViaGmail({ to, subject, html }: SendEmailInput): Promise<SendEmailResult> {
   const senderEmail = process.env.GMAIL_SENDER_EMAIL
   const replyTo = process.env.GMAIL_REPLY_TO
 
@@ -130,9 +135,15 @@ async function sendViaGmail({ to, subject, html }: SendEmailInput): Promise<void
     const body = await response.text()
     throw new Error(`Gmail API error (${response.status}): ${body}`)
   }
+
+  const payload = (await response.json()) as { id?: string }
+  return {
+    provider: "gmail",
+    providerMessageId: payload.id || null,
+  }
 }
 
-async function sendViaResend({ to, subject, html }: SendEmailInput): Promise<void> {
+async function sendViaResend({ to, subject, html }: SendEmailInput): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY
   const fromEmail = process.env.RESEND_FROM_EMAIL
 
@@ -162,14 +173,19 @@ async function sendViaResend({ to, subject, html }: SendEmailInput): Promise<voi
     const body = await response.text()
     throw new Error(`Resend API error (${response.status}): ${body}`)
   }
+
+  const payload = (await response.json()) as { id?: string }
+  return {
+    provider: "resend",
+    providerMessageId: payload.id || null,
+  }
 }
 
-export async function sendEmail(input: SendEmailInput): Promise<void> {
+export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
   const provider = detectProvider()
   if (provider === "gmail") {
-    await sendViaGmail(input)
-    return
+    return sendViaGmail(input)
   }
 
-  await sendViaResend(input)
+  return sendViaResend(input)
 }
