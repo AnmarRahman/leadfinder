@@ -8,14 +8,14 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
     (typeof window !== "undefined" && (window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 
-  console.log("[v0] Client - Supabase URL exists:", !!supabaseUrl)
-  console.log("[v0] Client - Supabase Key exists:", !!supabaseAnonKey)
-  console.log("[v0] Client - Environment:", typeof window !== "undefined" ? "browser" : "server")
+  console.log("[app] Client - Supabase URL exists:", !!supabaseUrl)
+  console.log("[app] Client - Supabase Key exists:", !!supabaseAnonKey)
+  console.log("[app] Client - Environment:", typeof window !== "undefined" ? "browser" : "server")
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error("[v0] Client - Missing Supabase environment variables")
-    console.error("[v0] Client - URL:", supabaseUrl ? "present" : "missing")
-    console.error("[v0] Client - Key:", supabaseAnonKey ? "present" : "missing")
+    console.error("[app] Client - Missing Supabase environment variables")
+    console.error("[app] Client - URL:", supabaseUrl ? "present" : "missing")
+    console.error("[app] Client - Key:", supabaseAnonKey ? "present" : "missing")
 
     return {
       auth: {

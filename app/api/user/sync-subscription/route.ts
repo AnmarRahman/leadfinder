@@ -4,7 +4,7 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("[v0] Starting subscription sync")
+    console.log("[app] Starting subscription sync")
 
     const supabase = await createClient()
 
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       error: authError,
     } = await supabase.auth.getUser()
     if (authError || !user) {
-      console.log("[v0] Auth error:", authError)
+      console.log("[app] Auth error:", authError)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -26,11 +26,11 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (profileError || !profile) {
-      console.log("[v0] Profile error:", profileError)
+      console.log("[app] Profile error:", profileError)
       return NextResponse.json({ error: "User profile not found" }, { status: 404 })
     }
 
-    console.log("[v0] Current profile:", profile)
+    console.log("[app] Current profile:", profile)
 
     if (!profile.stripe_customer_id) {
       return NextResponse.json({ error: "No Stripe customer ID found" }, { status: 400 })
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       limit: 1,
     })
 
-    console.log("[v0] Active subscriptions:", subscriptions.data.length)
+    console.log("[app] Active subscriptions:", subscriptions.data.length)
 
     let newTier = "free"
     let newQuota = 100
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       const subscription = subscriptions.data[0]
       const priceId = subscription.items.data[0]?.price.id
 
-      console.log("[v0] Active subscription price ID:", priceId)
+      console.log("[app] Active subscription price ID:", priceId)
 
       // Determine tier based on price ID
       if (priceId === process.env.STRIPE_PRO_PRICE_ID) {
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log("[v0] Updating to tier:", newTier, "quota:", newQuota)
+    console.log("[app] Updating to tier:", newTier, "quota:", newQuota)
 
     // Update user subscription in database
     const { error: updateError } = await supabase
@@ -77,11 +77,11 @@ export async function POST(request: NextRequest) {
       .eq("id", user.id)
 
     if (updateError) {
-      console.log("[v0] Update error:", updateError)
+      console.log("[app] Update error:", updateError)
       return NextResponse.json({ error: "Failed to update subscription" }, { status: 500 })
     }
 
-    console.log("[v0] Subscription synced successfully")
+    console.log("[app] Subscription synced successfully")
 
     return NextResponse.json({
       success: true,
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       quota: newQuota,
     })
   } catch (error) {
-    console.error("[v0] Sync subscription error:", error)
+    console.error("[app] Sync subscription error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

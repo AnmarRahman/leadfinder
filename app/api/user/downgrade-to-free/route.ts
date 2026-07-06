@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("[v0] Downgrade to free endpoint called")
+    console.log("[app] Downgrade to free endpoint called")
 
     const supabase = await createClient()
 
@@ -14,11 +14,11 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      console.log("[v0] User not authenticated:", authError)
+      console.log("[app] User not authenticated:", authError)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    console.log("[v0] Downgrading user to free:", user.id)
+    console.log("[app] Downgrading user to free:", user.id)
 
     // Update user subscription to free tier
     const { data, error } = await supabase
@@ -33,11 +33,11 @@ export async function POST(request: NextRequest) {
       .select()
 
     if (error) {
-      console.error("[v0] Error updating user subscription:", error)
+      console.error("[app] Error updating user subscription:", error)
       return NextResponse.json({ error: "Failed to update subscription" }, { status: 500 })
     }
 
-    console.log("[v0] Successfully downgraded user to free:", data)
+    console.log("[app] Successfully downgraded user to free:", data)
 
     return NextResponse.json({
       success: true,
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       user: data[0],
     })
   } catch (error) {
-    console.error("[v0] Error in downgrade endpoint:", error)
+    console.error("[app] Error in downgrade endpoint:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

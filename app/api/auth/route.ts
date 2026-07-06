@@ -5,15 +5,15 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("[v0] Auth API called")
+    console.log("[app] Auth API called")
     const { email, password, action } = await request.json()
-    console.log("[v0] Action:", action, "Email:", email)
+    console.log("[app] Action:", action, "Email:", email)
 
     const supabase = await createClient()
-    console.log("[v0] Supabase client created")
+    console.log("[app] Supabase client created")
 
     if (action === "signup") {
-      console.log("[v0] Processing signup")
+      console.log("[app] Processing signup")
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      console.log("[v0] Signup result:", { data: !!data, error: error?.message })
+      console.log("[app] Signup result:", { data: !!data, error: error?.message })
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 400 })
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 })
   } catch (error) {
-    console.error("[v0] Auth API error:", error)
+    console.error("[app] Auth API error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
